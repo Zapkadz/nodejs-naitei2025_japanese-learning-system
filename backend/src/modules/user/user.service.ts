@@ -38,6 +38,14 @@ export class UserService {
         'Password and confirm password do not match',
       );
     }
+
+    const existingUser = await this.userRepository.findOne({
+      where: { email: data.email },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('Email already exists');
+    }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirm_password, ...userData } = data;
     if (userData.password) {

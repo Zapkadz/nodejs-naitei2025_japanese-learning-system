@@ -8,6 +8,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -32,7 +33,7 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Patch()
-  async updateProfile(
+  async updateUserProfile(
     @Body() dataUser: UpdateUserDto,
     @Request() request: any,
   ): Promise<{ user: UserResponseDto | null }> {
@@ -40,6 +41,22 @@ export class UserController {
     const userId = request.user.userId;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const token = request.headers.authorization?.split(' ')[1];
+
+    if (!dataUser.currentPassword) {
+      throw new ForbiddenException(
+        'Current password is required for profile updates',
+      );
+    }
+
+    const isValidPassword = await this.userService.validateCurrentPassword(
+      userId as number,
+      dataUser.currentPassword,
+    );
+
+    if (!isValidPassword) {
+      throw new ForbiddenException('Current password is incorrect');
+    }
+
     const user = await this.userService.updateProfile(
       userId as number,
       dataUser,
@@ -71,7 +88,6 @@ export class UserController {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const userId = req.user.userId;
 
-    // Xử lý ảnh (resize + convert sang PNG) bằng Sharp
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const buffer: Buffer = await sharp(file.buffer)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -81,10 +97,8 @@ export class UserController {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .toBuffer();
 
-    // Chuyển buffer sang Base64
     const base64Image = `data:image/png;base64,${buffer.toString('base64')}`;
 
-    // Lưu Base64 vào DB
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const updatedUser = await this.userService.updateProfile(userId, {
       image: base64Image,
@@ -94,7 +108,7 @@ export class UserController {
       user: {
         email: updatedUser?.email,
         full_name: updatedUser?.full_name,
-        image: updatedUser?.image, // trả về Base64 trực tiếp
+        image: updatedUser?.image,
       },
     };
   }

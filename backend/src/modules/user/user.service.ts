@@ -86,11 +86,36 @@ export class UserService {
     await this.userRepository.save(user);
   }
 
+  async validateCurrentPassword(
+    userId: number,
+    currentPassword: string,
+  ): Promise<boolean> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'password'],
+    });
+
+    if (!user || !user.password) {
+      return false;
+    }
+
+    return bcrypt.compare(currentPassword, user.password);
+  }
+
   async updateProfile(
     userId: number,
-    dataUser: Partial<User>,
+    dataUser: Partial<User> & { currentPassword?: string },
   ): Promise<Partial<User> | null> {
-    await this.userRepository.update(userId, dataUser);
+    // Remove currentPassword from update data (it's only for validation)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { currentPassword, ...updateData } = dataUser;
+
+    // Hash new password if provided
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
+    }
+
+    await this.userRepository.update(userId, updateData);
     return this.userRepository.findOne({
       where: { id: userId },
       select: ['id', 'full_name', 'email', 'image', 'createdAt', 'updatedAt'],

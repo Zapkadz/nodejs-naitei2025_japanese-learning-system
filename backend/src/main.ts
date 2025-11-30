@@ -5,6 +5,10 @@ import {
   ValidationError,
   ValidationPipe,
 } from '@nestjs/common';
+import { validateEnv } from './config/env.validation';
+
+// Validate environment variables on application startup
+validateEnv();
 
 async function startApp() {
   const app = await NestFactory.create(AppModule);
@@ -21,6 +25,7 @@ async function startApp() {
       },
     }),
   );
-  await app.listen(process.env.PORT ?? 3000);
+  const env = validateEnv();
+  await app.listen(env.PORT);
 }
 void startApp();

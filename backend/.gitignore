@@ -54,3 +54,13 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+2022_12_sec1.sql:Zone.Identifier
+2022_12_sec2.sql
+2022_12_sec2.sql:Zone.Identifier
+2022_12_sec3.sql
+2022_12_sec3.sql:Zone.Identifier
+
+test-api.http
+test-api.ps1
+test-api.sh

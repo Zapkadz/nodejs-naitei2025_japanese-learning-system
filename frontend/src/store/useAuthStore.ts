@@ -22,6 +22,7 @@ interface AuthState {
   logout: () => Promise<void>;
   clearError: () => void;
   checkAuth: () => Promise<void>;
+  updateUser: (user: IUser) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -133,6 +134,11 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
           });
         }
+      },
+
+      // Update User (after profile update, avatar upload, etc.)
+      updateUser: (user: IUser) => {
+        set({ user });
       },
     }),
     {

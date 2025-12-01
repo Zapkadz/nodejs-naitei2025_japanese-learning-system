@@ -7,6 +7,7 @@ import type {
   IRegisterResponse,
   IUser,
   IUserUpdate,
+  ITestAttempt,
   IPasswordChange,
 } from '../types';
 import type { IDataService } from './IDataService';
@@ -165,4 +166,22 @@ export class ApiDataService implements IDataService {
       return new Error(`Request Error: ${error.message}`);
     }
   }
+  // ============================================================================
+  // Test Attempt Management
+  // ============================================================================
+
+  async startTestAttempt(testId: number): Promise<ITestAttempt> {
+    // Backend lấy userId từ JWT token
+    const response = await this.api.post<ITestAttempt>('/test-attempts', {
+      test_id: testId,
+    });
+    return response.data;
+  }
+
+  async getTestAttempt(testAttemptId: number): Promise<ITestAttempt> {
+    const response = await this.api.get<ITestAttempt>(`/test-attempts/${testAttemptId}`);
+    return response.data;
+  }
+
 }
+

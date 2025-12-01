@@ -13,14 +13,15 @@ import {
   ChevronDown 
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-
+import { WeeklyActivityChart } from '../components/WeeklyActivityChart';
+import { RecentAttempts } from '../components/RecentAttempts';
 import { HTMLRenderer } from '../components/HTMLRenderer';
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
-export function MainLayout({ children }: MainLayoutProps): React.ReactElement {
+export function MainLayout({ children }: MainLayoutProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
@@ -50,24 +51,9 @@ export function MainLayout({ children }: MainLayoutProps): React.ReactElement {
     setShowLangMenu(false);
   };
 
-  const handleLogout = async (): Promise<void> => {
-    try {
-      await logout();
-      localStorage.removeItem('jlpt-auth-storage');
-      localStorage.removeItem('token');
-      navigate('/', { replace: true });
-    } catch (error) {
-      console.error({
-        operation: 'User logout',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        context: 'Logout handler failed, forcing client-side cleanup' 
-      });
-      // Force logout on error
-      localStorage.removeItem('jlpt-auth-storage');
-      localStorage.removeItem('token');
-      navigate('/', { replace: true });
-    }
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
   };
 
   const languages = [
@@ -238,12 +224,39 @@ export function MainLayout({ children }: MainLayoutProps): React.ReactElement {
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="flex-1 flex max-w-screen-2xl mx-auto w-full relative overflow-hidden">       
+      {/* Main Content with Right Sidebar */}
+      <div className="flex-1 flex max-w-screen-2xl mx-auto w-full relative overflow-hidden">
+        {/* Scrollable Main Content */}
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
           {children}
         </main>
 
+        {/* Fixed Right Sidebar - Always visible on desktop */}
+        <aside className="hidden lg:block w-80 flex-none border-l-2 border-emerald-200 dark:border-slate-700 bg-gradient-to-b from-emerald-50/50 to-teal-50/30 dark:from-slate-900 dark:to-slate-800 relative overflow-hidden shadow-xl">
+          {/* Decorative accents */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/10 to-transparent dark:from-emerald-500/10 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-teal-400/10 to-transparent dark:from-teal-500/10 rounded-full blur-2xl"></div>
+          
+          <div className="h-full flex flex-col space-y-4 py-4 px-3 relative z-10">
+            {/* Weekly Activity Chart - 33% */}
+            <div className="h-[33%] flex-none group bg-white dark:bg-slate-800/80 rounded-2xl shadow-lg border-2 border-emerald-200 dark:border-slate-700 p-4 hover:shadow-2xl hover:border-emerald-400 dark:hover:border-emerald-600 hover:-translate-y-1 transition-all duration-300 overflow-hidden backdrop-blur-sm">
+              <div className="relative h-full">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent dark:from-emerald-900/10 rounded-xl"></div>
+                <WeeklyActivityChart />
+              </div>
+            </div>
+
+            {/* Recent Attempts - 75% */}
+            <div className="flex-1 min-h-0 group bg-white dark:bg-slate-800/80 rounded-2xl shadow-lg border-2 border-emerald-200 dark:border-slate-700 p-4 hover:shadow-2xl hover:border-emerald-400 dark:hover:border-emerald-600 hover:-translate-y-1 transition-all duration-300 overflow-hidden backdrop-blur-sm">
+              <div className="relative h-full">
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-50/50 to-transparent dark:from-teal-900/10 rounded-xl pointer-events-none"></div>
+                <div className="relative h-full overflow-y-auto">
+                  <RecentAttempts />
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );

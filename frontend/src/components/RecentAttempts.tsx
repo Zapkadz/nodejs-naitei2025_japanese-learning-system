@@ -23,7 +23,7 @@ export function RecentAttempts() {
       if (!user) return;
 
       try {
-        const data = await dataService.getTestAttempts(user.id);
+        const data = await dataService.getTestAttempts();
         // Sort by started_at descending and take latest 5
         const sortedData = data.sort((a, b) => 
           new Date(b.started_at).getTime() - new Date(a.started_at).getTime()

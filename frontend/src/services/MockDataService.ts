@@ -13,6 +13,8 @@ import type {
   ISectionAttempt,
   IQuestionResult,
   IPasswordChange,
+  IWeeklyActivity,
+  IActivityHeatmapDay,
 } from '../types';
 import type { IDataService } from './IDataService';
 
@@ -769,11 +771,11 @@ export class MockDataService implements IDataService {
     return { ...testAttempt, sections };
   }
 
-  async getTestAttempts(userId: number, testId?: number): Promise<ITestAttempt[]> {
+  async getTestAttempts(testId?: number): Promise<ITestAttempt[]> {
     await this.delay(300);
 
     const attempts = Array.from(this.testAttempts.values())
-      .filter(ta => ta.user_id === userId && (testId ? ta.test_id === testId : true))
+      .filter(ta => (testId ? ta.test_id === testId : true))
       .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
 
     // Populate sections for each attempt
@@ -994,8 +996,8 @@ export class MockDataService implements IDataService {
     throw new Error('Invalid credentials');
   }
 
-  async getHistory(userId: number): Promise<ITestAttempt[]> {
-    return this.getTestAttempts(userId);
+  async getHistory(): Promise<ITestAttempt[]> {
+    return this.getTestAttempts();
   }
 
   async register(data: IRegisterData): Promise<IAuthResponse> {
@@ -1061,6 +1063,29 @@ export class MockDataService implements IDataService {
       updated_at: new Date().toISOString(),
     };
     return this.currentUser;
+  }
+
+  // ============================================================================
+  // Analytics
+  // ============================================================================
+
+  async getUserWeeklyActivity(): Promise<IWeeklyActivity[]> {
+    await this.delay(200);
+    // Return empty mock data to satisfy interface; replace with real aggregation if needed
+    return [];
+  }
+
+  async getUserActivityHeatmap(year?: number): Promise<IActivityHeatmapDay[]> {
+    await this.delay(200);
+    const targetYear = year ?? new Date().getFullYear();
+    const start = new Date(targetYear, 0, 1);
+    const end = new Date(targetYear, 11, 31);
+    const days: IActivityHeatmapDay[] = [];
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const count = Math.random() < 0.2 ? Math.floor(Math.random() * 5) : 0;
+      days.push({ date: d.toISOString().slice(0, 10), count });
+    }
+    return days;
   }
 
   // ============================================================================

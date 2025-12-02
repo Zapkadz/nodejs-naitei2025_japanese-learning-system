@@ -277,3 +277,60 @@ export interface ITestAttempt {
   completed_at: string | null;
   sections: ISectionAttemptWithDetails[]; // Array of 3 section attempts
 }
+
+// ============================================================================
+// User Statistics & Activity
+// ============================================================================
+
+export interface IWeeklyActivity {
+  day: string; // 'Sun', 'Mon', 'Tue', etc.
+  completed: number; // number of completed tests
+  date: string; // ISO date string
+}
+
+export interface IActivityHeatmapDay {
+  date: string; // 'YYYY-MM-DD'
+  count: number; // number of activities (completed tests/sections)
+  level: 0 | 1 | 2 | 3 | 4; // intensity level for color coding
+}
+
+// ============================================================================
+// Request/Response DTOs
+// ============================================================================
+
+export interface TestFilter {
+  level?: JLPTLevel;
+  year?: number;
+  is_active?: boolean;
+}
+
+export interface IAnswerSubmission {
+  question_id: number;
+  selected_option_id: number | null;
+  is_marked: boolean;
+}
+
+export interface ISubmission {
+  section_attempt_id: number;
+  answers: IAnswerSubmission[];
+  time_remaining?: number; // in seconds
+}
+
+export interface IQuestionResult {
+  question_id: number;
+  question_number: number;
+  selected_option_id: number | null;
+  correct_option_id: number;
+  is_correct: boolean;
+  is_marked: boolean;
+  explanation: string | null;
+}
+
+export interface IResult {
+  section_attempt_id: number;
+  score: number;
+  correct_count: number;
+  total_questions: number;
+  percentage: number;
+  questions: IQuestionResult[];
+}

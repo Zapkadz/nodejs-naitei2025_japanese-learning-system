@@ -13,6 +13,10 @@ import type {
   IUserUpdate,
   IPasswordChange,
   ITestAttempt,
+  IWeeklyActivity,
+  IActivityHeatmapDay,
+  ITest,
+  TestFilter,
 } from '../types';
 
 export interface IDataService {
@@ -94,6 +98,43 @@ export interface IDataService {
    * @param testId - Optional test ID filter
    * @returns Promise resolving to array of test attempts
    */
-  getTestAttempts(userId: number, testId?: number): Promise<ITestAttempt[]>;
+  getTestAttempts(testId?: number): Promise<ITestAttempt[]>;
+
+    // ============================================================================
+  // User Statistics & Activity
+  // ============================================================================
+
+  /**
+   * Get user's weekly activity (last 7 days)
+   * @param userId - User ID
+   * @returns Promise resolving to array of daily activity data
+   */
+  getUserWeeklyActivity(): Promise<IWeeklyActivity[]>;
+
+  /**
+   * Get user's activity heatmap data (last 365 days)
+   * @param userId - User ID
+   * @param year - Optional year filter (defaults to current year)
+   * @returns Promise resolving to array of daily activity data
+   */
+  getUserActivityHeatmap(year?: number): Promise<IActivityHeatmapDay[]>;
+
+
+   // ============================================================================
+  // Test Management
+  // ============================================================================
+
+  /**
+   * Get list of tests with optional filtering
+   * @param filter - Optional filter criteria (level, year, is_active)
+   * @returns Promise resolving to array of tests
+   */
+  getTests(filter?: TestFilter): Promise<ITest[]>;
+
+  /**
+   * Get detailed test information including all sections, parts, questions, and options
+   * @param id - Test ID
+   * @returns Promise resolving to test detail with nested structure
+   */
 
 }

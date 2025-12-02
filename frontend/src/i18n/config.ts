@@ -77,11 +77,23 @@ const resources = {
 
       // Dashboard
       dashboard: {
+        title: 'Practice Tests',
+        subtitle: 'Choose a test to start practicing',
         recentAttempts: 'Recent Attempts',
         weeklyActivity: 'Weekly Activity',
         last7Days: 'Last 7 days',
         today: 'Today',
         otherDays: 'Other days',
+        availablePlural: '{{count}} tests available',
+        allLevels: '🌟 All',
+        allYears: '📅 All Years',
+        yearOption: '📅 {{year}}',
+        emptyDescription: 'Try adjusting your filters',
+        status: {
+          all: '📋 All Status',
+          attempted: '✅ Attempted',
+          notAttempted: '✨ Not Attempted',
+        },
       },
       
       // Settings
@@ -121,6 +133,14 @@ const resources = {
         inProgress: 'In Progress',
         sections: 'Sections',
         avgScore: 'Avg Score',
+        status: {
+          done: '✓ Done',
+          new: '✨ New',
+        },
+        cta: {
+          continue: 'Continue',
+          start: 'Start Now',
+        },
       },
 
      
@@ -222,11 +242,23 @@ const resources = {
 
       // Dashboard
       dashboard: {
+        title: '練習テスト',
+        subtitle: 'テストを選択して練習を始めましょう',
         recentAttempts: '最近のテスト',
         weeklyActivity: '週間アクティビティ',
         last7Days: '過去7日間',
         today: '今日',
         otherDays: '他の日',
+        availablePlural: '{{count}}件のテストが利用可能',
+        allLevels: '🌟 すべて',
+        allYears: '📅 すべての年',
+        yearOption: '📅 {{year}}',
+        emptyDescription: 'フィルターを調整してみてください',
+        status: {
+          all: '📋 すべてのステータス',
+          attempted: '✅ 実施済み',
+          notAttempted: '✨ 未実施',
+        },
       },
       
       settings: {
@@ -285,6 +317,14 @@ const resources = {
         inProgress: '進行中',
         sections: 'セクション',
         avgScore: '平均スコア',
+        status: {
+          done: '✓ 完了',
+          new: '✨ 新規',
+        },
+        cta: {
+          continue: '続ける',
+          start: '今すぐ開始',
+        },
       },
       
     },
@@ -360,11 +400,23 @@ const resources = {
 
       // Dashboard
       dashboard: {
+        title: 'Đề luyện tập',
+        subtitle: 'Chọn một đề để bắt đầu luyện tập',
         recentAttempts: 'Bài thi gần đây',
         weeklyActivity: 'Hoạt động tuần này',
         last7Days: '7 ngày qua',
         today: 'Hôm nay',
         otherDays: 'Ngày khác',
+        availablePlural: '{{count}} đề khả dụng',
+        allLevels: '🌟 Tất cả',
+        allYears: '📅 Tất cả năm',
+        yearOption: '📅 {{year}}',
+        emptyDescription: 'Hãy thử điều chỉnh bộ lọc',
+        status: {
+          all: '📋 Tất cả trạng thái',
+          attempted: '✅ Đã làm',
+          notAttempted: '✨ Chưa làm',
+        },
       },
       
       settings: {
@@ -423,6 +475,14 @@ const resources = {
         inProgress: 'Đang làm',
         sections: 'Phần thi',
         avgScore: 'Điểm TB',
+        status: {
+          done: '✓ Đã xong',
+          new: '✨ Mới',
+        },
+        cta: {
+          continue: 'Tiếp tục',
+          start: 'Bắt đầu ngay',
+        },
       },
       
     

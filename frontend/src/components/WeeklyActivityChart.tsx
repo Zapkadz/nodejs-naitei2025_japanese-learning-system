@@ -5,20 +5,48 @@
 
 import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from 'recharts';
+import { useEffect, useState } from 'react';
+import { dataService } from '../services';
+import type { IWeeklyActivity } from '../types';
 
 export function WeeklyActivityChart() {
   const { t } = useTranslation();
+  const [weeklyData, setWeeklyData] = useState<IWeeklyActivity[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Get current day of week (0 = Sunday, 6 = Saturday)
   const today = new Date().getDay();
 
-  // Mock data for weekly activity (completed tests per day)
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const data = weekDays.map((day, index) => ({
-    day,
-    completed: Math.floor(Math.random() * 5), // Mock: number of completed tests
+  useEffect(() => {
+    const fetchWeeklyActivity = async () => {
+      try {
+        setLoading(true);
+        const data = await dataService.getUserWeeklyActivity();
+        setWeeklyData(data);
+      } catch (error) {
+        console.error('Failed to fetch weekly activity:', error);
+        setWeeklyData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWeeklyActivity();
+  }, []);
+
+  // Map data with isToday flag
+  const data = weeklyData.map((item, index) => ({
+    ...item,
     isToday: index === today,
   }));
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-sm text-gray-500 dark:text-gray-400">{t('common.loading', 'Loading...')}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col">

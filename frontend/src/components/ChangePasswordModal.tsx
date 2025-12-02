@@ -14,8 +14,8 @@ interface ChangePasswordModalProps {
 export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswordModalProps) {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
-    current_password: '',
-    new_password: '',
+    currentPassword: '',
+    password: '',
     confirmPassword: '',
   });
   const [showPasswords, setShowPasswords] = useState({
@@ -34,7 +34,7 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
   };
 
   const handleSubmit = async () => {
-    if (formData.new_password !== formData.confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
       setError(t('profile.confirmNewPassword'));
       return;
     }
@@ -44,8 +44,8 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
 
     try {
       const changePasswordData: IPasswordChange = {
-        current_password: formData.current_password,
-        new_password: formData.new_password,
+        currentPassword: formData.currentPassword,
+        password: formData.password,
       };
 
       await dataService.changePassword(changePasswordData);
@@ -53,7 +53,7 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
       onSuccess(t('profile.passwordSuccess'));
       onClose();
       // Reset form
-      setFormData({ current_password: '', new_password: '', confirmPassword: '' });
+      setFormData({ currentPassword: '', password: '', confirmPassword: '' });
     } catch (error) {
       console.error('Failed to change password:', error);
       const errorMessage = error instanceof Error ? error.message : t('common.error');
@@ -88,8 +88,8 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
               <div className="relative">
                 <input
                   type={showPasswords.current ? 'text' : 'password'}
-                  name="current_password"
-                  value={formData.current_password}
+                  name="currentPassword"
+                  value={formData.currentPassword}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 pr-12 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                   placeholder="••••••••"
@@ -112,8 +112,8 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
               <div className="relative">
                 <input
                   type={showPasswords.new ? 'text' : 'password'}
-                  name="new_password"
-                  value={formData.new_password}
+                  name="password"
+                  value={formData.password}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 pr-12 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                   placeholder="••••••••"
@@ -163,7 +163,7 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
               </button>
               <button
                 onClick={handleSubmit}
-                disabled={isSaving || !formData.current_password || !formData.new_password || !formData.confirmPassword}
+                disabled={isSaving || !formData.currentPassword || !formData.password || !formData.confirmPassword}
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
               >
                 {isSaving ? t('profile.updating') : t('profile.updatePassword')}

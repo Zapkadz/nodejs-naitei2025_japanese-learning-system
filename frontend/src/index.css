@@ -20,4 +20,10 @@
     @apply text-xs text-slate-600 dark:text-slate-200;
     font-size: 0.6em;
   }
+  
+  /* Hide native password reveal/clear icons (Edge/IE) to avoid duplicate eye icon */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear {
+    display: none;
+  }
 }

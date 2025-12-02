@@ -19,6 +19,7 @@ export function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [testAttempts, setTestAttempts] = useState<ITestAttempt[]>([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [heatmapDays, setHeatmapDays] = useState<{ date: string; count: number }[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -29,7 +30,7 @@ export function HistoryPage() {
   const loadHistory = async () => {
     setLoading(true);
     try {
-      const data = await dataService.getTestAttempts(user!.id);
+      const data = await dataService.getTestAttempts();
       setTestAttempts(data);
     } catch (error) {
       console.error('Failed to load history:', error);
@@ -37,6 +38,19 @@ export function HistoryPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const loadHeatmap = async () => {
+      try {
+        const days = await dataService.getUserActivityHeatmap(selectedYear);
+        setHeatmapDays(Array.isArray(days) ? days : []);
+      } catch (err) {
+        console.error('Failed to load activity heatmap:', err);
+        setHeatmapDays([]);
+      }
+    };
+    loadHeatmap();
+  }, [selectedYear]);
 
   // Calculate statistics
   const completedTests = testAttempts.filter(t => t.is_completed).length;
@@ -51,25 +65,14 @@ export function HistoryPage() {
   // Generate activity heatmap data (full year - 53 weeks)
   const generateActivityData = () => {
     const year = selectedYear;
-    const startDate = new Date(year, 0, 1); // January 1st
-    
-    // Adjust to start from Sunday
+    const startDate = new Date(year, 0, 1);
     const startDay = startDate.getDay();
     const adjustedStart = new Date(startDate);
     adjustedStart.setDate(adjustedStart.getDate() - startDay);
 
     const activityMap = new Map<string, number>();
-    
-    // Count attempts per day
-    testAttempts.forEach(attempt => {
-      const attemptDate = new Date(attempt.started_at);
-      if (attemptDate.getFullYear() === year) {
-        const date = attemptDate.toISOString().split('T')[0];
-        activityMap.set(date, (activityMap.get(date) || 0) + 1);
-      }
-    });
+    heatmapDays.forEach(d => activityMap.set(d.date, d.count));
 
-    // Generate grid data (53 weeks * 7 days)
     const data: { date: string; count: number; day: number; week: number }[] = [];
     for (let week = 0; week < 53; week++) {
       for (let day = 0; day < 7; day++) {

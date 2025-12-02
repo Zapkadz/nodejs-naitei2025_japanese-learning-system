@@ -9,6 +9,10 @@ import type {
   IUserUpdate,
   ITestAttempt,
   IPasswordChange,
+  IWeeklyActivity,
+  IActivityHeatmapDay,
+  ITest,
+  TestFilter,
 } from '../types';
 import type { IDataService } from './IDataService';
 
@@ -182,6 +186,47 @@ export class ApiDataService implements IDataService {
     const response = await this.api.get<ITestAttempt>(`/test-attempts/${testAttemptId}`);
     return response.data;
   }
+  async getTestAttempts(testId?: number): Promise<ITestAttempt[]> {
+    const params = new URLSearchParams();
+    if (testId) params.append('test_id', testId.toString());
+    const response = await this.api.get<ITestAttempt[]>(`/test-attempts`, { params });
+    return response.data;
+  }
 
+    // ============================================================================
+  // User Statistics & Activity
+  // ============================================================================
+
+  async getUserWeeklyActivity(): Promise<IWeeklyActivity[]> {
+    const response = await this.api.get<IWeeklyActivity[]>(`/weekly-activity`);
+    return response.data;
+  }
+
+  async getUserActivityHeatmap(year?: number): Promise<IActivityHeatmapDay[]> {
+    const params = year ? { year } : {};
+    const response = await this.api.get<IActivityHeatmapDay[]>(
+      `/activity-heatmap`,
+      { params }
+    );
+    return response.data;
+  }
+
+  // ============================================================================
+  // Test Management
+  // ============================================================================
+
+  async getTests(filter?: TestFilter): Promise<ITest[]> {
+    const params = new URLSearchParams();
+
+    if (filter?.level) params.append('level', filter.level);
+    if (filter?.year) params.append('year', filter.year.toString());
+    if (filter?.is_active !== undefined) params.append('is_active', filter.is_active.toString());
+
+    const response = await this.api.get<any>('/tests', { params });
+    const data = response.data;
+    if (Array.isArray(data)) return data as ITest[];
+    if (data && Array.isArray(data.tests)) return data.tests as ITest[];
+    return [];
+  }
 }
 

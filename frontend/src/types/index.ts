@@ -242,8 +242,8 @@ export interface IUserUpdate {
 }
 
 export interface IPasswordChange {
-  current_password: string;
-  new_password: string;
+  currentPassword: string;
+  newPassword: string;
 }
 
 // ============================================================================
@@ -261,4 +261,19 @@ export interface ISectionProgress {
   answered: number;
   marked: number;
   total: number;
+}
+
+
+export interface ITestAttempt {
+  id: number;
+  user_id: number;
+  test_id: number;
+  test_title: string;
+  level: JLPTLevel;
+  is_completed: boolean;
+  is_passed: boolean | null;
+  total_score: number | null;
+  started_at: string;
+  completed_at: string | null;
+  sections: ISectionAttemptWithDetails[]; // Array of 3 section attempts
 }

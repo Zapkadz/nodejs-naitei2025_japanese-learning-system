@@ -21,11 +21,14 @@ export class SectionAttempt extends BaseEntity {
   @Column({ type: 'int', nullable: true })
   score?: number | null;
 
-  @Column({ type: 'int', default: 0 })
-  correct_count: number;
+  @Column({ type: 'int', nullable: true })
+  correct_count?: number | null;
 
   @Column({ type: 'int', default: 0 })
-  time_remaining: number;
+  question_count: number;
+
+  @Column({ type: 'int', nullable: true })
+  time_remaining?: number | null;
 
   @OneToMany(() => UserAnswer, (a) => a.section_attempt)
   answers: UserAnswer[];

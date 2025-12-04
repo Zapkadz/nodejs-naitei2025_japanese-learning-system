@@ -128,9 +128,8 @@ export class ProgressController {
       sectionAttemptId,
       updateDto,
     );
-    const response = this.progressService.buildSectionAttemptResponse(
-      sectionAttempt,
-    );
+    const response =
+      this.progressService.buildSectionAttemptResponse(sectionAttempt);
     return { sectionAttempt: response };
   }
 
@@ -160,9 +159,8 @@ export class ProgressController {
       submitDto.time_remaining,
     );
 
-    const response = this.progressService.buildSectionAttemptResponse(
-      sectionAttempt,
-    );
+    const response =
+      this.progressService.buildSectionAttemptResponse(sectionAttempt);
     return { sectionAttempt: response };
   }
 

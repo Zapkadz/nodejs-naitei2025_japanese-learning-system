@@ -1,11 +1,20 @@
-import { Controller, Get, Param, Query, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  ParseIntPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { TestService } from './test.service';
 import { Test } from '../../entities/tests.entity';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 
 @Controller('tests')
 export class TestController {
   constructor(private readonly testService: TestService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(
     @Query('level') level?: string,
@@ -16,6 +25,7 @@ export class TestController {
     return this.testService.buildTestsResponse(tests);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async findOne(
     @Param('id', ParseIntPipe) id: number,

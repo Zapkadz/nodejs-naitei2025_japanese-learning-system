@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsArray, ValidateNested } from 'class-validator';
+import { IsInt, IsOptional, IsArray, ValidateNested, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class AnswerSubmissionDto {
@@ -14,6 +14,9 @@ export class AnswerSubmissionDto {
 }
 
 export class SubmitSectionAttemptDto {
+  @IsEnum(['PAUSED', 'COMPLETED'])
+  status: 'PAUSED' | 'COMPLETED';
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => AnswerSubmissionDto)

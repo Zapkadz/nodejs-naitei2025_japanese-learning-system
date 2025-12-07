@@ -1,3 +1,5 @@
+import { UserAnswerResponseDto } from './user-answer-response.dto';
+
 // DTO for Section Attempt Response matching frontend ISectionAttempt
 export class SectionAttemptResponseDto {
   id: number;
@@ -16,5 +18,6 @@ export class SectionAttemptResponseDto {
 export class SectionAttemptWithDetailsResponseDto extends SectionAttemptResponseDto {
   section_name: string;
   time_limit: number;
+  user_answers?: UserAnswerResponseDto[]; // Only included when status is PAUSED or COMPLETED
 }
 

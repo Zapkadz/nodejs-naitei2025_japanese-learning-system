@@ -13,15 +13,12 @@ import {
 import { ProgressService } from './progress.service';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { TestAttemptResponseDto } from './dto/test-attempt-response.dto';
-import { UserAnswerResponseDto } from './dto/user-answer-response.dto';
-import { UpdateSectionAttemptDto } from './dto/update-section-attempt.dto';
-import { CreateOrUpdateAnswerDto } from './dto/create-or-update-answer.dto';
 import { SubmitSectionAttemptDto } from './dto/submit-section-attempt.dto';
 import {
   SectionAttemptResponseDto,
   SectionAttemptWithDetailsResponseDto,
 } from './dto/section-attempt-response.dto';
-import { SectionAttempt } from '../../entities/section_attempts.entity';
+import { SectionResponseDto } from './dto/section-response.dto';
 
 interface JwtPayload {
   userId: number;
@@ -81,18 +78,12 @@ export class ProgressController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('section-attempt/:id/answers')
-  async getAnswersBySectionAttempt(
-    @Param('id', ParseIntPipe) sectionAttemptId: number,
-    @Request() req,
-  ): Promise<{ answers: UserAnswerResponseDto[] }> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const userId = req.user.userId;
-    const answers = await this.progressService.getAnswersBySectionAttemptId(
-      userId as number,
-      sectionAttemptId,
-    );
-    return { answers };
+  @Get('section/:id')
+  async getSection(
+    @Param('id', ParseIntPipe) sectionId: number,
+  ): Promise<{ section: SectionResponseDto }> {
+    const section = await this.progressService.getSection(sectionId);
+    return { section };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -107,26 +98,20 @@ export class ProgressController {
       userId as number,
       sectionAttemptId,
     );
-    const response =
-      this.progressService.buildSectionAttemptWithDetailsResponse(
-        sectionAttempt,
-      );
-    return { sectionAttempt: response };
+    return { sectionAttempt };
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('section-attempt/:id')
-  async updateSectionAttempt(
+  async updateSectionAttemptToInProgress(
     @Param('id', ParseIntPipe) sectionAttemptId: number,
-    @Body() updateDto: UpdateSectionAttemptDto,
     @Request() req,
   ): Promise<{ sectionAttempt: SectionAttemptResponseDto }> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const userId = req.user.userId;
-    const sectionAttempt = await this.progressService.updateSectionAttempt(
+    const sectionAttempt = await this.progressService.updateSectionAttemptToInProgress(
       userId as number,
       sectionAttemptId,
-      updateDto,
     );
     const response =
       this.progressService.buildSectionAttemptResponse(sectionAttempt);
@@ -134,7 +119,7 @@ export class ProgressController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('section-attempt/:id/submit')
+  @Post('section-attempt/:id')
   async submitSectionAttempt(
     @Param('id', ParseIntPipe) sectionAttemptId: number,
     @Body() submitDto: SubmitSectionAttemptDto,
@@ -143,41 +128,15 @@ export class ProgressController {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const userId = req.user.userId;
 
-    // First, save/update all answers
-    for (const answer of submitDto.answers) {
-      await this.progressService.createOrUpdateAnswer(
-        userId as number,
-        sectionAttemptId,
-        answer,
-      );
-    }
-
-    // Then submit the section attempt (calculates correct_count and score)
+    // Submit the section attempt (saves answers and updates status)
     const sectionAttempt = await this.progressService.submitSectionAttempt(
       userId as number,
       sectionAttemptId,
-      submitDto.time_remaining,
+      submitDto,
     );
 
     const response =
       this.progressService.buildSectionAttemptResponse(sectionAttempt);
     return { sectionAttempt: response };
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('section-attempt/:id/answer')
-  async createOrUpdateAnswer(
-    @Param('id', ParseIntPipe) sectionAttemptId: number,
-    @Body() answerDto: CreateOrUpdateAnswerDto,
-    @Request() req,
-  ): Promise<{ answer: UserAnswerResponseDto }> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const userId = req.user.userId;
-    const answer = await this.progressService.createOrUpdateAnswer(
-      userId as number,
-      sectionAttemptId,
-      answerDto,
-    );
-    return { answer };
   }
 }

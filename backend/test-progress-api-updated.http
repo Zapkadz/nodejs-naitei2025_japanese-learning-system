@@ -1,0 +1,439 @@
+### ============================================
+### TEST API PROGRESS MODULE - UPDATED VERSION
+### Base URL: http://localhost:3000/api
+### ============================================
+
+### ============================================
+### STEP 1: Đăng ký/Đăng nhập để lấy JWT Token
+### ============================================
+
+### 1.1. Đăng ký user mới
+POST http://localhost:3000/api/user/
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123",
+  "confirm_password": "password123",
+  "full_name": "Test User"
+}
+
+### 1.2. Đăng nhập để lấy token
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Response sẽ trả về:
+### {
+###   "user": {
+###     "email": "test@example.com",
+###     "full_name": "Test User",
+###     "role": "user",
+###     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+###     ...
+###   }
+### }
+###
+### Lưu token này để dùng cho các request sau (thay YOUR_TOKEN_HERE)
+
+### ============================================
+### STEP 2: Bắt đầu Test Attempt
+### ============================================
+
+### 2.1. Bắt đầu làm bài test (testId = 1)
+POST http://localhost:3000/api/progress/test-attempt/start/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+### Response:
+### {
+###   "testAttempt": {
+###     "id": 1,
+###     "testId": 1,
+###     "is_completed": false,
+###     "section_attempts": [
+###       {
+###         "id": 1,
+###         "sectionId": 1,
+###         "status": "NOT_STARTED",
+###         ...
+###       }
+###     ]
+###   }
+### }
+### Lưu section_attempt_id để dùng cho các bước sau
+
+### ============================================
+### STEP 3: Lấy đề bài Section (MỚI)
+### ============================================
+
+### 3.1. Lấy đề bài của section (sectionId = 1)
+GET http://localhost:3000/api/progress/section/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+### Response:
+### {
+###   "section": {
+###     "id": 1,
+###     "name": "Section 1",
+###     "audio_url": "...",
+###     "time_limit": 60,
+###     "order_index": 1,
+###     "parts": [
+###       {
+###         "id": 1,
+###         "part_number": 1,
+###         "title": "Part 1",
+###         "passages": [
+###           {
+###             "id": 1,
+###             "title": "Passage Title",
+###             "content": "Passage content...",
+###             "image_url": "..."
+###           }
+###         ],
+###         "questions": [
+###           {
+###             "id": 1,
+###             "question_number": 1,
+###             "content": "Question content?",
+###             "image_url": "...",
+###             "audio_url": "...",
+###             "explanation": "...",
+###             "passage_id": 1,
+###             "options": [
+###               {
+###                 "id": 1,
+###                 "content": "Option 1",
+###                 "order_index": 1
+###               },
+###               {
+###                 "id": 2,
+###                 "content": "Option 2",
+###                 "order_index": 2
+###               }
+###             ]
+###           }
+###         ]
+###       }
+###     ]
+###   }
+### }
+
+### ============================================
+### STEP 4: Bắt đầu làm Section (Chuyển sang IN_PROGRESS)
+### ============================================
+
+### 4.1. Chuyển section attempt từ NOT_STARTED hoặc PAUSED sang IN_PROGRESS
+PATCH http://localhost:3000/api/progress/section-attempt/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+### Response:
+### {
+###   "sectionAttempt": {
+###     "id": 1,
+###     "test_attempt_id": 1,
+###     "section_id": 1,
+###     "status": "IN_PROGRESS",
+###     "score": null,
+###     "correct_count": null,
+###     "question_count": 20,
+###     "time_remaining": 3600,
+###     "created_at": "2024-01-01T10:00:00.000Z",
+###     "updated_at": "2024-01-01T10:05:00.000Z"
+###   }
+### }
+
+### ============================================
+### STEP 5: Lấy Section Attempt với User Answers (Nếu PAUSED/COMPLETED)
+### ============================================
+
+### 5.1. Lấy section attempt - Nếu status là PAUSED hoặc COMPLETED sẽ có user_answers
+GET http://localhost:3000/api/progress/section-attempt/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+### Response khi status = PAUSED:
+### {
+###   "sectionAttempt": {
+###     "id": 1,
+###     "test_attempt_id": 1,
+###     "section_id": 1,
+###     "status": "PAUSED",
+###     "score": null,
+###     "correct_count": null,
+###     "question_count": 20,
+###     "time_remaining": 3000,
+###     "section_name": "Section 1",
+###     "time_limit": 60,
+###     "user_answers": [
+###       {
+###         "id": 1,
+###         "section_attempt_id": 1,
+###         "question_id": 1,
+###         "selected_option_id": 3,
+###         "option_correct_id": null,  // Chưa có vì chưa COMPLETED
+###         "is_marked": false,
+###         "createdAt": "2024-01-01T10:10:00.000Z",
+###         "updatedAt": "2024-01-01T10:10:00.000Z"
+###       }
+###     ]
+###   }
+### }
+
+### Response khi status = COMPLETED:
+### {
+###   "sectionAttempt": {
+###     "id": 1,
+###     "test_attempt_id": 1,
+###     "section_id": 1,
+###     "status": "COMPLETED",
+###     "score": 85,
+###     "correct_count": 17,
+###     "question_count": 20,
+###     "time_remaining": 0,
+###     "section_name": "Section 1",
+###     "time_limit": 60,
+###     "user_answers": [
+###       {
+###         "id": 1,
+###         "section_attempt_id": 1,
+###         "question_id": 1,
+###         "selected_option_id": 3,
+###         "option_correct_id": 3,  // Có correct answer vì đã COMPLETED
+###         "is_marked": false,
+###         "createdAt": "2024-01-01T10:10:00.000Z",
+###         "updatedAt": "2024-01-01T10:10:00.000Z"
+###       },
+###       {
+###         "id": 2,
+###         "section_attempt_id": 1,
+###         "question_id": 2,
+###         "selected_option_id": 5,
+###         "option_correct_id": 7,  // Correct answer là 7, user chọn 5 (sai)
+###         "is_marked": false,
+###         "createdAt": "2024-01-01T10:11:00.000Z",
+###         "updatedAt": "2024-01-01T10:11:00.000Z"
+###       }
+###     ]
+###   }
+### }
+
+### ============================================
+### STEP 6: Submit Section Attempt (PAUSE hoặc COMPLETE)
+### ============================================
+
+### 6.1. PAUSE Section Attempt (Lưu tiến độ và tạm dừng)
+POST http://localhost:3000/api/progress/section-attempt/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "status": "PAUSED",
+  "time_remaining": 3000,
+  "answers": [
+    {
+      "question_id": 1,
+      "selected_option_id": 3,
+      "is_marked": false
+    },
+    {
+      "question_id": 2,
+      "selected_option_id": 5,
+      "is_marked": true
+    },
+    {
+      "question_id": 3,
+      "selected_option_id": null,
+      "is_marked": true
+    }
+  ]
+}
+
+### Response:
+### {
+###   "sectionAttempt": {
+###     "id": 1,
+###     "test_attempt_id": 1,
+###     "section_id": 1,
+###     "status": "PAUSED",
+###     "score": null,
+###     "correct_count": null,
+###     "question_count": 20,
+###     "time_remaining": 3000,
+###     "created_at": "2024-01-01T10:00:00.000Z",
+###     "updated_at": "2024-01-01T10:15:00.000Z"
+###   }
+### }
+
+### 6.2. COMPLETE Section Attempt (Nộp bài và tính điểm)
+POST http://localhost:3000/api/progress/section-attempt/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "status": "COMPLETED",
+  "time_remaining": 0,
+  "answers": [
+    {
+      "question_id": 1,
+      "selected_option_id": 3,
+      "is_marked": false
+    },
+    {
+      "question_id": 2,
+      "selected_option_id": 5,
+      "is_marked": false
+    },
+    {
+      "question_id": 3,
+      "selected_option_id": 7,
+      "is_marked": false
+    },
+    {
+      "question_id": 4,
+      "selected_option_id": null,
+      "is_marked": false
+    }
+  ]
+}
+
+### Response:
+### {
+###   "sectionAttempt": {
+###     "id": 1,
+###     "test_attempt_id": 1,
+###     "section_id": 1,
+###     "status": "COMPLETED",
+###     "score": 75,  // Tự động tính từ correct_count
+###     "correct_count": 15,  // Tự động tính từ answers
+###     "question_count": 20,
+###     "time_remaining": 0,
+###     "created_at": "2024-01-01T10:00:00.000Z",
+###     "updated_at": "2024-01-01T10:20:00.000Z"
+###   }
+### }
+
+### ============================================
+### STEP 7: Kiểm tra Test Attempts
+### ============================================
+
+### 7.1. Lấy tất cả test attempts của user
+GET http://localhost:3000/api/progress/test-attempts
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+### 7.2. Lấy chi tiết một test attempt
+GET http://localhost:3000/api/progress/test-attempt/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+### ============================================
+### FLOW TEST ĐẦY ĐỦ
+### ============================================
+
+### QUY TRÌNH TEST:
+### 1. Đăng nhập để lấy token (STEP 1)
+### 2. Bắt đầu test attempt (STEP 2) → Lấy section_attempt_id
+### 3. Lấy đề bài section (STEP 3) → Hiển thị đề cho user
+### 4. Chuyển status sang IN_PROGRESS (STEP 4) → Bắt đầu làm bài
+### 5. Submit với status PAUSED (STEP 6.1) → Lưu tiến độ
+### 6. Lấy section attempt (STEP 5) → Kiểm tra user_answers đã lưu
+### 7. Tiếp tục làm bài và Submit với status COMPLETED (STEP 6.2) → Nộp bài
+### 8. Lấy section attempt lại (STEP 5) → Kiểm tra score, correct_count, option_correct_id
+
+### ============================================
+### ERROR RESPONSES
+### ============================================
+
+### 401 Unauthorized - Thiếu hoặc token không hợp lệ
+### {
+###   "statusCode": 401,
+###   "message": "Unauthorized"
+### }
+
+### 403 Forbidden - Không có quyền truy cập section attempt của user khác
+### {
+###   "statusCode": 403,
+###   "message": "You do not have permission to access this section attempt"
+### }
+
+### 404 Not Found - Section/Section Attempt không tồn tại
+### {
+###   "statusCode": 404,
+###   "message": "Section not found"
+### }
+
+### 400 Bad Request - Validation error
+### {
+###   "statusCode": 400,
+###   "message": [
+###     {
+###       "status": ["status must be one of the following values: PAUSED, COMPLETED"]
+###     }
+###   ]
+### }
+
+### 400 Bad Request - Không thể chuyển status sang IN_PROGRESS
+### {
+###   "statusCode": 400,
+###   "message": "Cannot change status to IN_PROGRESS from COMPLETED"
+### }
+
+### ============================================
+### HƯỚNG DẪN SỬ DỤNG TRONG POSTMAN
+### ============================================
+
+### 1. Tạo Environment Variables:
+###    - base_url: http://localhost:3000/api
+###    - token: (sẽ set sau khi đăng nhập)
+
+### 2. Tạo Collection mới với các request:
+###    - Login → Lưu token vào environment variable
+###    - Start Test Attempt
+###    - Get Section
+###    - Update Section Attempt to IN_PROGRESS
+###    - Get Section Attempt
+###    - Submit Section Attempt (PAUSED)
+###    - Submit Section Attempt (COMPLETED)
+
+### 3. Test Script cho Login (để tự động lưu token):
+###    Trong tab "Tests" của request Login:
+###    ```javascript
+###    if (pm.response.code === 200) {
+###        const response = pm.response.json();
+###        pm.environment.set("token", response.user.token);
+###    }
+###    ```
+
+### 4. Sử dụng token trong các request khác:
+###    Header: Authorization: Bearer {{token}}
+
+### ============================================
+### LƯU Ý QUAN TRỌNG
+### ============================================
+
+### 1. GET /progress/section-attempt/:id
+###    - Chỉ trả về user_answers khi status là PAUSED hoặc COMPLETED
+###    - Nếu COMPLETED, sẽ có thêm option_correct_id cho mỗi answer
+
+### 2. POST /progress/section-attempt/:id
+###    - status phải là "PAUSED" hoặc "COMPLETED"
+###    - Nếu COMPLETED, sẽ tự động tính correct_count và score
+###    - answers[] là danh sách tất cả câu trả lời cần lưu
+
+### 3. PATCH /progress/section-attempt/:id
+###    - Chỉ dùng để chuyển status sang IN_PROGRESS
+###    - Chỉ có thể chuyển từ NOT_STARTED hoặc PAUSED
+
+### 4. option_correct_id
+###    - Chỉ có trong response khi status = COMPLETED
+###    - Là ID của option đúng cho câu hỏi đó
+###    - Dùng để hiển thị đáp án đúng cho user
+

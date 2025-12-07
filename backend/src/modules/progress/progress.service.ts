@@ -15,7 +15,6 @@ import { User } from '../../entities/users.entity';
 import { Question } from '../../entities/questions.entity';
 import { Option } from '../../entities/options.entity';
 import { CreateTestAttemptDto } from './dto/create-test-attempt.dto';
-import { UpdateSectionAttemptDto } from './dto/update-section-attempt.dto';
 import { CreateOrUpdateAnswerDto } from './dto/create-or-update-answer.dto';
 import { UserAnswerResponseDto } from './dto/user-answer-response.dto';
 import {
@@ -24,6 +23,9 @@ import {
 } from './dto/section-attempt-response.dto';
 import { Section } from '../../entities/sections.entity';
 import { Part } from '../../entities/parts.entity';
+import { Passage } from '../../entities/passages.entity';
+import { SectionResponseDto } from './dto/section-response.dto';
+import { SubmitSectionAttemptDto } from './dto/submit-section-attempt.dto';
 
 @Injectable()
 export class ProgressService {
@@ -42,6 +44,12 @@ export class ProgressService {
     private readonly questionRepo: Repository<Question>,
     @InjectRepository(Option)
     private readonly optionRepo: Repository<Option>,
+    @InjectRepository(Section)
+    private readonly sectionRepo: Repository<Section>,
+    @InjectRepository(Part)
+    private readonly partRepo: Repository<Part>,
+    @InjectRepository(Passage)
+    private readonly passageRepo: Repository<Passage>,
   ) {}
 
   buildTestAttemptResponse(attempt: TestAttempt) {
@@ -81,15 +89,28 @@ export class ProgressService {
     };
   }
 
-  buildSectionAttemptWithDetailsResponse(
+  async buildSectionAttemptWithDetailsResponse(
     sectionAttempt: SectionAttempt,
-  ): SectionAttemptWithDetailsResponseDto {
+    includeUserAnswers: boolean = false,
+  ): Promise<SectionAttemptWithDetailsResponseDto> {
     const base = this.buildSectionAttemptResponse(sectionAttempt);
-    return {
+    const response: SectionAttemptWithDetailsResponseDto = {
       ...base,
       section_name: sectionAttempt.section.name,
       time_limit: sectionAttempt.section.time_limit,
     };
+
+    // Include user_answers if status is PAUSED or COMPLETED
+    if (includeUserAnswers && (sectionAttempt.status === 'PAUSED' || sectionAttempt.status === 'COMPLETED')) {
+      const includeCorrectAnswer = sectionAttempt.status === 'COMPLETED';
+      response.user_answers = await this.getAnswersBySectionAttemptId(
+        sectionAttempt.test_attempt.user.id,
+        sectionAttempt.id,
+        includeCorrectAnswer,
+      );
+    }
+
+    return response;
   }
 
   private async checkAndCompleteTestAttempt(attempt: TestAttempt) {
@@ -188,9 +209,72 @@ export class ProgressService {
     return this.checkAndCompleteTestAttempt(attempt);
   }
 
+  async getSection(sectionId: number): Promise<SectionResponseDto> {
+    const section = await this.sectionRepo.findOne({
+      where: { id: sectionId },
+      relations: [
+        'parts',
+        'parts.questions',
+        'parts.questions.options',
+        'parts.passages',
+      ],
+    });
+
+    if (!section) {
+      throw new NotFoundException('Section not found');
+    }
+
+    // Sort parts by part_number
+    const sortedParts = section.parts.sort((a, b) => a.part_number - b.part_number);
+
+    return {
+      id: section.id,
+      name: section.name,
+      audio_url: section.audio_url,
+      time_limit: section.time_limit,
+      order_index: section.order_index,
+      parts: sortedParts.map((part) => {
+        // Sort questions by question_number
+        const sortedQuestions = part.questions?.sort((a, b) => a.question_number - b.question_number) || [];
+        
+        return {
+          id: part.id,
+          part_number: part.part_number,
+          title: part.title,
+          passages: part.passages?.map((passage) => ({
+            id: passage.id,
+            title: passage.title,
+            content: passage.content,
+            image_url: passage.image_url,
+          })) || [],
+          questions: sortedQuestions.map((question) => {
+            // Sort options by order_index
+            const sortedOptions = question.options?.sort((a, b) => a.order_index - b.order_index) || [];
+            
+            return {
+              id: question.id,
+              question_number: question.question_number,
+              content: question.content,
+              image_url: question.image_url,
+              audio_url: question.audio_url,
+              explanation: question.explanation,
+              passage_id: question.passage?.id ?? null,
+              options: sortedOptions.map((option) => ({
+                id: option.id,
+                content: option.content,
+                order_index: option.order_index,
+              })),
+            };
+          }),
+        };
+      }),
+    };
+  }
+
   async getAnswersBySectionAttemptId(
     userId: number,
     sectionAttemptId: number,
+    includeCorrectAnswer: boolean = false,
   ): Promise<UserAnswerResponseDto[]> {
     // Verify section attempt belongs to user
     const sectionAttempt = await this.sectionAttemptRepo.findOne({
@@ -210,26 +294,37 @@ export class ProgressService {
 
     const answers = await this.userAnswerRepo.find({
       where: { section_attempt: { id: sectionAttemptId } },
-      relations: ['question', 'selected_option'],
+      relations: ['question', 'selected_option', 'question.options'],
       order: { id: 'ASC' },
     });
 
-    return answers.map((answer) => ({
-      id: answer.id,
-      section_attempt_id: sectionAttemptId,
-      question_id: answer.question.id,
-      selected_option_id: answer.selected_option?.id ?? null,
-      is_correct: answer.is_correct,
-      is_marked: answer.is_marked,
-      createdAt: answer.createdAt,
-      updatedAt: answer.updatedAt,
-    }));
+    return answers.map((answer) => {
+      // Find correct option for this question
+      let optionCorrectId: number | null = null;
+      if (includeCorrectAnswer) {
+        const correctOption = answer.question.options?.find(
+          (opt) => opt.is_correct === true,
+        );
+        optionCorrectId = correctOption?.id ?? null;
+      }
+
+      return {
+        id: answer.id,
+        section_attempt_id: sectionAttemptId,
+        question_id: answer.question.id,
+        selected_option_id: answer.selected_option?.id ?? null,
+        option_correct_id: optionCorrectId,
+        is_marked: answer.is_marked,
+        createdAt: answer.createdAt,
+        updatedAt: answer.updatedAt,
+      };
+    });
   }
 
   async getSectionAttempt(
     userId: number,
     sectionAttemptId: number,
-  ): Promise<SectionAttempt> {
+  ): Promise<SectionAttemptWithDetailsResponseDto> {
     const sectionAttempt = await this.sectionAttemptRepo.findOne({
       where: { id: sectionAttemptId },
       relations: [
@@ -250,13 +345,17 @@ export class ProgressService {
       );
     }
 
-    return sectionAttempt;
+    // Include user_answers if status is PAUSED or COMPLETED
+    const includeUserAnswers = sectionAttempt.status === 'PAUSED' || sectionAttempt.status === 'COMPLETED';
+    return this.buildSectionAttemptWithDetailsResponse(sectionAttempt, includeUserAnswers);
   }
 
-  async updateSectionAttempt(
+  /**
+   * Update section attempt status to IN_PROGRESS (used when starting/resuming)
+   */
+  async updateSectionAttemptToInProgress(
     userId: number,
     sectionAttemptId: number,
-    updateDto: UpdateSectionAttemptDto,
   ): Promise<SectionAttempt> {
     // Verify section attempt belongs to user
     const sectionAttempt = await this.sectionAttemptRepo.findOne({
@@ -274,47 +373,15 @@ export class ProgressService {
       );
     }
 
-    // Check if status is being set to COMPLETED
-    const isCompleting =
-      updateDto.status === 'COMPLETED' &&
-      sectionAttempt.status !== 'COMPLETED';
-
-    // Update fields (correct_count is calculated automatically, not updated manually)
-    if (updateDto.status !== undefined) {
-      sectionAttempt.status = updateDto.status;
-    }
-    if (updateDto.time_remaining !== undefined) {
-      sectionAttempt.time_remaining = updateDto.time_remaining;
+    // Only allow status change to IN_PROGRESS from NOT_STARTED or PAUSED
+    if (sectionAttempt.status !== 'NOT_STARTED' && sectionAttempt.status !== 'PAUSED') {
+      throw new BadRequestException(
+        `Cannot change status to IN_PROGRESS from ${sectionAttempt.status}`,
+      );
     }
 
-    // If completing, automatically calculate correct_count and score
-    if (isCompleting) {
-      const correctCount = await this.calculateCorrectCount(sectionAttemptId);
-      const totalQuestions = sectionAttempt.question_count || 0;
-      const score =
-        totalQuestions > 0
-          ? Math.round((correctCount / totalQuestions) * 100)
-          : 0;
-
-      sectionAttempt.correct_count = correctCount;
-      sectionAttempt.score = score;
-    } else if (updateDto.score !== undefined) {
-      // Only allow manual score update if not completing
-      sectionAttempt.score = updateDto.score;
-    }
-
+    sectionAttempt.status = 'IN_PROGRESS';
     const updated = await this.sectionAttemptRepo.save(sectionAttempt);
-
-    // Check if test attempt should be completed
-    if (updated.status === 'COMPLETED') {
-      const testAttempt = await this.testAttemptRepo.findOne({
-        where: { id: updated.test_attempt.id },
-        relations: ['section_attempts'],
-      });
-      if (testAttempt) {
-        await this.checkAndCompleteTestAttempt(testAttempt);
-      }
-    }
 
     // Reload with all necessary relations for response
     const reloaded = await this.sectionAttemptRepo.findOne({
@@ -339,13 +406,15 @@ export class ProgressService {
   }
 
   /**
-   * Submit section attempt - calculates score and correct_count automatically
+   * Submit section attempt - saves answers and updates status (PAUSED or COMPLETED)
+   * Calculates score and correct_count automatically if status is COMPLETED
    */
   async submitSectionAttempt(
     userId: number,
     sectionAttemptId: number,
-    timeRemaining?: number,
+    submitDto: SubmitSectionAttemptDto,
   ): Promise<SectionAttempt> {
+    // Verify section attempt belongs to user
     const sectionAttempt = await this.sectionAttemptRepo.findOne({
       where: { id: sectionAttemptId },
       relations: [
@@ -368,53 +437,142 @@ export class ProgressService {
       );
     }
 
-    // Calculate correct_count from answers
-    const correctCount = await this.calculateCorrectCount(sectionAttemptId);
+    // Save/update all answers
+    for (const answerDto of submitDto.answers) {
+      await this.createOrUpdateAnswerInternal(
+        sectionAttempt,
+        answerDto,
+      );
+    }
 
-    // Calculate score (percentage)
-    const totalQuestions = sectionAttempt.question_count || 0;
-    const score =
-      totalQuestions > 0
-        ? Math.round((correctCount / totalQuestions) * 100)
-        : 0;
+    // Update section attempt status
+    sectionAttempt.status = submitDto.status;
 
-    // Update section attempt
-    sectionAttempt.status = 'COMPLETED';
-    sectionAttempt.score = score;
-    sectionAttempt.correct_count = correctCount;
-    if (timeRemaining !== undefined) {
-      sectionAttempt.time_remaining = timeRemaining;
+    // If completing, calculate correct_count and score
+    if (submitDto.status === 'COMPLETED') {
+      const correctCount = await this.calculateCorrectCount(sectionAttemptId);
+      const totalQuestions = sectionAttempt.question_count || 0;
+      const score =
+        totalQuestions > 0
+          ? Math.round((correctCount / totalQuestions) * 100)
+          : 0;
+
+      sectionAttempt.score = score;
+      sectionAttempt.correct_count = correctCount;
+    }
+
+    if (submitDto.time_remaining !== undefined) {
+      sectionAttempt.time_remaining = submitDto.time_remaining;
     }
 
     const updated = await this.sectionAttemptRepo.save(sectionAttempt);
 
     // Check if test attempt should be completed
-    const testAttempt = await this.testAttemptRepo.findOne({
-      where: { id: updated.test_attempt.id },
-      relations: ['section_attempts'],
-    });
-    if (testAttempt) {
-      const allCompleted = testAttempt.section_attempts.every(
-        (s) => s.status === 'COMPLETED',
-      );
-
-      if (allCompleted && !testAttempt.is_completed) {
-        // Calculate average score
-        const avgScore = Math.round(
-          testAttempt.section_attempts.reduce(
-            (sum, s) => sum + (s.score || 0),
-            0,
-          ) / testAttempt.section_attempts.length,
+    if (updated.status === 'COMPLETED') {
+      const testAttempt = await this.testAttemptRepo.findOne({
+        where: { id: updated.test_attempt.id },
+        relations: ['section_attempts'],
+      });
+      if (testAttempt) {
+        const allCompleted = testAttempt.section_attempts.every(
+          (s) => s.status === 'COMPLETED',
         );
-        testAttempt.is_completed = true;
-        testAttempt.total_score = avgScore;
-        testAttempt.is_passed = avgScore >= 60;
-        testAttempt.completed_at = new Date();
-        await this.testAttemptRepo.save(testAttempt);
+
+        if (allCompleted && !testAttempt.is_completed) {
+          // Calculate average score
+          const avgScore = Math.round(
+            testAttempt.section_attempts.reduce(
+              (sum, s) => sum + (s.score || 0),
+              0,
+            ) / testAttempt.section_attempts.length,
+          );
+          testAttempt.is_completed = true;
+          testAttempt.total_score = avgScore;
+          testAttempt.is_passed = avgScore >= 60;
+          testAttempt.completed_at = new Date();
+          await this.testAttemptRepo.save(testAttempt);
+        }
       }
     }
 
     return updated;
+  }
+
+  /**
+   * Internal method to create or update answer (without user verification)
+   */
+  private async createOrUpdateAnswerInternal(
+    sectionAttempt: SectionAttempt,
+    answerDto: CreateOrUpdateAnswerDto,
+  ): Promise<UserAnswer> {
+    // Verify question exists
+    const question = await this.questionRepo.findOne({
+      where: { id: answerDto.question_id },
+      relations: ['options'],
+    });
+
+    if (!question) {
+      throw new NotFoundException('Question not found');
+    }
+
+    // Check if answer already exists
+    let userAnswer = await this.userAnswerRepo.findOne({
+      where: {
+        section_attempt: { id: sectionAttempt.id },
+        question: { id: answerDto.question_id },
+      },
+      relations: ['selected_option'],
+    });
+
+    // Determine if answer is correct and validate option (only query once)
+    let isCorrect = false;
+    let selectedOption: Option | null = null;
+    
+    if (answerDto.selected_option_id !== null && answerDto.selected_option_id !== undefined) {
+      selectedOption = await this.optionRepo.findOne({
+        where: { id: answerDto.selected_option_id },
+        relations: ['question'],
+      });
+
+      if (!selectedOption) {
+        throw new NotFoundException(
+          `Selected option with id ${answerDto.selected_option_id} not found`,
+        );
+      }
+
+      // Verify option belongs to question
+      if (selectedOption.question.id !== answerDto.question_id) {
+        throw new BadRequestException(
+          `Selected option (id: ${answerDto.selected_option_id}) does not belong to question (id: ${answerDto.question_id}). Option belongs to question (id: ${selectedOption.question.id})`,
+        );
+      }
+
+      isCorrect = selectedOption.is_correct;
+    }
+
+    if (userAnswer) {
+      // Update existing answer
+      if (answerDto.selected_option_id !== undefined) {
+        userAnswer.selected_option = selectedOption;
+        userAnswer.is_correct = isCorrect;
+      }
+      if (answerDto.is_marked !== undefined) {
+        userAnswer.is_marked = answerDto.is_marked;
+      }
+      await this.userAnswerRepo.save(userAnswer);
+    } else {
+      // Create new answer
+      userAnswer = this.userAnswerRepo.create({
+        section_attempt: sectionAttempt,
+        question,
+        selected_option: selectedOption,
+        is_correct: isCorrect,
+        is_marked: answerDto.is_marked ?? false,
+      });
+      await this.userAnswerRepo.save(userAnswer);
+    }
+
+    return userAnswer;
   }
 
   async createOrUpdateAnswer(
@@ -519,7 +677,7 @@ export class ProgressService {
       section_attempt_id: sectionAttemptId,
       question_id: question.id,
       selected_option_id: userAnswer.selected_option?.id ?? null,
-      is_correct: userAnswer.is_correct,
+      option_correct_id: null, // Not included when status is not COMPLETED
       is_marked: userAnswer.is_marked,
       createdAt: userAnswer.createdAt,
       updatedAt: userAnswer.updatedAt,

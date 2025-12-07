@@ -9,6 +9,9 @@ import { User } from '../../entities/users.entity';
 import { Test } from '../../entities/tests.entity';
 import { Question } from '../../entities/questions.entity';
 import { Option } from '../../entities/options.entity';
+import { Section } from '../../entities/sections.entity';
+import { Part } from '../../entities/parts.entity';
+import { Passage } from '../../entities/passages.entity';
 
 @Module({
   imports: [
@@ -20,6 +23,9 @@ import { Option } from '../../entities/options.entity';
       Test,
       Question,
       Option,
+      Section,
+      Part,
+      Passage,
     ]),
   ],
   controllers: [ProgressController],

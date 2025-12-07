@@ -1,0 +1,324 @@
+{
+	"info": {
+		"_postman_id": "jlpt-progress-api-updated",
+		"name": "JLPT Progress API - Updated Version",
+		"description": "Collection các API đã được cập nhật cho Progress Module - Flow mới với GET section, submit với status PAUSED/COMPLETED",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "1.1. Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set(\"user_email\", response.user.email);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"confirm_password\": \"password123\",\n  \"full_name\": \"Test User\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/user/",
+							"host": ["{{base_url}}"],
+							"path": ["user", ""]
+						},
+						"description": "Đăng ký user mới"
+					}
+				},
+				{
+					"name": "1.2. Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set(\"token\", response.user.token);",
+									"    console.log(\"Token saved:\", response.user.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Đăng nhập để lấy JWT token. Token sẽ tự động được lưu vào environment variable."
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Test Attempt",
+			"item": [
+				{
+					"name": "2.1. Start Test Attempt",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.testAttempt && response.testAttempt.section_attempts && response.testAttempt.section_attempts.length > 0) {",
+									"        pm.environment.set(\"test_attempt_id\", response.testAttempt.id);",
+									"        pm.environment.set(\"section_attempt_id\", response.testAttempt.section_attempts[0].id);",
+									"        pm.environment.set(\"section_id\", response.testAttempt.section_attempts[0].sectionId);",
+									"        console.log(\"Test Attempt ID:\", response.testAttempt.id);",
+									"        console.log(\"Section Attempt ID:\", response.testAttempt.section_attempts[0].id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/progress/test-attempt/start/1",
+							"host": ["{{base_url}}"],
+							"path": ["progress", "test-attempt", "start", "1"]
+						},
+						"description": "Bắt đầu làm bài test. Thay đổi testId (số 1) theo test bạn muốn làm."
+					}
+				},
+				{
+					"name": "2.2. Get All Test Attempts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/progress/test-attempts",
+							"host": ["{{base_url}}"],
+							"path": ["progress", "test-attempts"]
+						},
+						"description": "Lấy danh sách tất cả test attempts của user"
+					}
+				},
+				{
+					"name": "2.3. Get Test Attempt by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/progress/test-attempt/{{test_attempt_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["progress", "test-attempt", "{{test_attempt_id}}"]
+						},
+						"description": "Lấy chi tiết một test attempt"
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Section (NEW)",
+			"item": [
+				{
+					"name": "3.1. Get Section (Get Đề Bài)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/progress/section/{{section_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["progress", "section", "{{section_id}}"]
+						},
+						"description": "Lấy đề bài của section (bao gồm parts, questions, options, passages). API này được gọi khi user bấm 'Start Section' để hiển thị đề bài."
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Section Attempt",
+			"item": [
+				{
+					"name": "4.1. Get Section Attempt",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/progress/section-attempt/{{section_attempt_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["progress", "section-attempt", "{{section_attempt_id}}"]
+						},
+						"description": "Lấy thông tin section attempt. Nếu status là PAUSED hoặc COMPLETED, sẽ trả về user_answers. Nếu COMPLETED, sẽ có thêm option_correct_id."
+					}
+				},
+				{
+					"name": "4.2. Update Section Attempt to IN_PROGRESS",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/progress/section-attempt/{{section_attempt_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["progress", "section-attempt", "{{section_attempt_id}}"]
+						},
+						"description": "Chuyển status sang IN_PROGRESS (từ NOT_STARTED hoặc PAUSED). Không cần body, chỉ cần gọi PATCH."
+					}
+				},
+				{
+					"name": "4.3. Submit Section Attempt - PAUSED",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"PAUSED\",\n  \"time_remaining\": 3000,\n  \"answers\": [\n    {\n      \"question_id\": 1,\n      \"selected_option_id\": 3,\n      \"is_marked\": false\n    },\n    {\n      \"question_id\": 2,\n      \"selected_option_id\": 5,\n      \"is_marked\": true\n    },\n    {\n      \"question_id\": 3,\n      \"selected_option_id\": null,\n      \"is_marked\": true\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/progress/section-attempt/{{section_attempt_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["progress", "section-attempt", "{{section_attempt_id}}"]
+						},
+						"description": "Lưu tiến độ và tạm dừng (PAUSED). Lưu tất cả answers đã làm."
+					}
+				},
+				{
+					"name": "4.4. Submit Section Attempt - COMPLETED",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"COMPLETED\",\n  \"time_remaining\": 0,\n  \"answers\": [\n    {\n      \"question_id\": 1,\n      \"selected_option_id\": 3,\n      \"is_marked\": false\n    },\n    {\n      \"question_id\": 2,\n      \"selected_option_id\": 5,\n      \"is_marked\": false\n    },\n    {\n      \"question_id\": 3,\n      \"selected_option_id\": 7,\n      \"is_marked\": false\n    },\n    {\n      \"question_id\": 4,\n      \"selected_option_id\": null,\n      \"is_marked\": false\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/progress/section-attempt/{{section_attempt_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["progress", "section-attempt", "{{section_attempt_id}}"]
+						},
+						"description": "Nộp bài và hoàn thành (COMPLETED). Tự động tính correct_count và score từ các answers."
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_email",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "test_attempt_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "section_attempt_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "section_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+

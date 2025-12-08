@@ -318,9 +318,14 @@ export class ProgressService {
     includeCorrectAnswer: boolean = false,
   ): Promise<UserAnswerResponseDto[]> {
     // Verify section attempt belongs to user
+    const relations = ['test_attempt', 'test_attempt.user'];
+    if (includeCorrectAnswer) {
+      relations.push('section', 'section.parts', 'section.parts.questions', 'section.parts.questions.options');
+    }
+
     const sectionAttempt = await this.sectionAttemptRepo.findOne({
       where: { id: sectionAttemptId },
-      relations: ['test_attempt', 'test_attempt.user'],
+      relations,
     });
 
     if (!sectionAttempt) {
@@ -339,6 +344,51 @@ export class ProgressService {
       order: { id: 'ASC' },
     });
 
+    // Create a map of question_id -> answer for quick lookup
+    const answerMap = new Map(
+      answers.map((answer) => [answer.question.id, answer]),
+    );
+
+    // If includeCorrectAnswer is true (COMPLETED), return ALL questions in section
+    if (includeCorrectAnswer && sectionAttempt.section.parts) {
+      const allQuestions: UserAnswerResponseDto[] = [];
+
+      // Get all questions from all parts, sorted by part_number and question_number
+      const sortedParts = sectionAttempt.section.parts.sort(
+        (a, b) => a.part_number - b.part_number,
+      );
+
+      for (const part of sortedParts) {
+        if (part.questions) {
+          // Sort questions by question_number
+          const sortedQuestions = part.questions.sort(
+            (a, b) => a.question_number - b.question_number,
+          );
+
+          for (const question of sortedQuestions) {
+            const answer = answerMap.get(question.id);
+            const correctOption = question.options?.find(
+              (opt) => opt.is_correct === true,
+            );
+
+            allQuestions.push({
+              id: answer?.id ?? 0, // 0 means no answer record exists yet
+              section_attempt_id: sectionAttemptId,
+              question_id: question.id,
+              selected_option_id: answer?.selected_option?.id ?? null,
+              option_correct_id: correctOption?.id ?? null, // Always show correct answer when COMPLETED
+              is_marked: answer?.is_marked ?? false,
+              createdAt: answer?.createdAt ?? new Date(),
+              updatedAt: answer?.updatedAt ?? new Date(),
+            });
+          }
+        }
+      }
+
+      return allQuestions; // Already sorted by part_number and question_number
+    }
+
+    // If PAUSED or not includeCorrectAnswer, return only answered questions
     return answers.map((answer) => {
       // Find correct option for this question
       let optionCorrectId: number | null = null;
@@ -373,6 +423,9 @@ export class ProgressService {
         'test_attempt.user',
         'test_attempt.test',
         'section',
+        'section.parts',
+        'section.parts.questions',
+        'section.parts.questions.options',
       ],
     });
 
@@ -559,6 +612,17 @@ export class ProgressService {
 
     if (!question) {
       throw new NotFoundException('Question not found');
+    }
+
+    // Verify question belongs to section
+    const questionBelongsToSection = sectionAttempt.section.parts?.some(
+      (part) => part.questions?.some((q) => q.id === answerDto.question_id),
+    );
+
+    if (!questionBelongsToSection) {
+      throw new BadRequestException(
+        `Question (id: ${answerDto.question_id}) does not belong to section (id: ${sectionAttempt.section.id})`,
+      );
     }
 
     // Check if answer already exists

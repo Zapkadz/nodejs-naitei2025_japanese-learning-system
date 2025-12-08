@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "jlpt-progress-api-updated",
 		"name": "JLPT Progress API - Updated Version",
-		"description": "Collection các API đã được cập nhật cho Progress Module - Flow mới với GET section, submit với status PAUSED/COMPLETED",
+		"description": "Collection các API đã được cập nhật cho Progress Module - Flow mới với GET section, submit với status PAUSED/COMPLETED\n\n**Cập nhật mới:**\n- Khi status = COMPLETED, GET section-attempt sẽ trả về TẤT CẢ câu hỏi với đáp án đúng, kể cả những câu chưa làm\n- Validation: Kiểm tra question thuộc section trước khi lưu answer\n- Partial update: Chỉ cần gửi các câu đã thay đổi",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -208,7 +208,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["progress", "section-attempt", "{{section_attempt_id}}"]
 						},
-						"description": "Lấy thông tin section attempt. Nếu status là PAUSED hoặc COMPLETED, sẽ trả về user_answers. Nếu COMPLETED, sẽ có thêm option_correct_id."
+						"description": "Lấy thông tin section attempt.\n\n- Nếu status = PAUSED: chỉ trả về các câu đã làm (có answer record)\n- Nếu status = COMPLETED: trả về TẤT CẢ câu hỏi trong section, kể cả những câu chưa làm:\n  * Câu đã làm: có selected_option_id và option_correct_id\n  * Câu chưa làm: selected_option_id = null, nhưng vẫn có option_correct_id để xem đáp án đúng\n\nLưu ý: Khi COMPLETED, id = 0 nghĩa là chưa có answer record cho câu đó."
 					}
 				},
 				{
@@ -256,7 +256,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["progress", "section-attempt", "{{section_attempt_id}}"]
 						},
-						"description": "Lưu tiến độ và tạm dừng (PAUSED). Lưu tất cả answers đã làm."
+						"description": "Lưu tiến độ và tạm dừng (PAUSED).\n\n- Chỉ cần gửi các câu đã làm (partial update)\n- Các câu không gửi sẽ giữ nguyên giá trị cũ\n- Khi GET lại, chỉ thấy các câu đã có answer record\n\nLưu ý:\n- selected_option_id: null = xóa câu trả lời\n- Không gửi selected_option_id = giữ nguyên (khi update)"
 					}
 				},
 				{
@@ -282,7 +282,38 @@
 							"host": ["{{base_url}}"],
 							"path": ["progress", "section-attempt", "{{section_attempt_id}}"]
 						},
-						"description": "Nộp bài và hoàn thành (COMPLETED). Tự động tính correct_count và score từ các answers."
+						"description": "Nộp bài và hoàn thành (COMPLETED).\n\n- Chỉ cần gửi các câu đã làm (có thể chỉ làm vài câu)\n- Tự động tính correct_count và score từ các answers có is_correct = true\n- Sau khi COMPLETED, khi gọi GET section-attempt sẽ trả về TẤT CẢ câu hỏi với đáp án đúng, kể cả những câu chưa làm\n\nVí dụ: Nếu section có 20 câu, bạn chỉ làm 5 câu rồi submit COMPLETED, khi GET lại sẽ thấy cả 20 câu với option_correct_id cho tất cả."
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Examples & Testing",
+			"item": [
+				{
+					"name": "5.1. Example: Submit COMPLETED với ít câu",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"COMPLETED\",\n  \"time_remaining\": 0,\n  \"answers\": [\n    {\n      \"question_id\": 1,\n      \"selected_option_id\": 3,\n      \"is_marked\": false\n    },\n    {\n      \"question_id\": 2,\n      \"selected_option_id\": null,\n      \"is_marked\": false\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/progress/section-attempt/{{section_attempt_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["progress", "section-attempt", "{{section_attempt_id}}"]
+						},
+						"description": "Ví dụ: Submit COMPLETED khi chỉ làm 2 câu (câu 1 chọn option 3, câu 2 bỏ trống).\n\nSau đó gọi GET section-attempt sẽ thấy:\n- Câu 1: selected_option_id = 3, option_correct_id = ...\n- Câu 2: selected_option_id = null, option_correct_id = ...\n- Câu 3, 4, 5... (nếu có): selected_option_id = null, option_correct_id = ...\n\nTất cả câu đều có option_correct_id để xem đáp án đúng."
 					}
 				}
 			]

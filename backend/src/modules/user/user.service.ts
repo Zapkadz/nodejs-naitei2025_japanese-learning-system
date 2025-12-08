@@ -5,16 +5,19 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/users.entity';
-import { Repository } from 'typeorm';
+import { Between, Like, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { UserResponseDto } from './dto/user-reponse.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { TestAttempt } from 'src/entities/test_attempts.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(TestAttempt)
+    private readonly testAttemptRepo: Repository<TestAttempt>,
   ) {}
 
   buildUserResponse(user: User, token?: string): { user: UserResponseDto } {
@@ -28,6 +31,39 @@ export class UserService {
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
+    };
+  }
+
+  buildUsersResponse(users: User[]): { users: UserResponseDto[] } {
+    return {
+      users: users.map((user) => ({
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        role: user.role,
+        image: user.image,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      })),
+    };
+  }
+
+  buildCompletedAttemptsResponse(attempts: TestAttempt[]) {
+    return {
+      attempts: attempts.map((a) => ({
+        id: a.id,
+        is_completed: a.is_completed,
+        total_score: a.total_score,
+        is_passed: a.is_passed,
+        started_at: a.started_at,
+        completed_at: a.completed_at,
+        user: {
+          id: a.user.id,
+          full_name: a.user.full_name,
+          email: a.user.email,
+          image: a.user.image,
+        },
+      })),
     };
   }
 
@@ -120,5 +156,97 @@ export class UserService {
       where: { id: userId },
       select: ['id', 'full_name', 'email', 'image', 'createdAt', 'updatedAt'],
     });
+  }
+
+  async getWeeklyActivity(userId: number) {
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 6);
+
+    const attempts = await this.testAttemptRepo.find({
+      where: {
+        user: { id: userId },
+        is_completed: true,
+        completed_at: Between(sevenDaysAgo, today),
+      },
+    });
+
+    // Tạo map count theo từng ngày
+    const dailyCount = new Map<string, number>();
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(sevenDaysAgo);
+      d.setDate(sevenDaysAgo.getDate() + i);
+      const key = d.toISOString().split('T')[0];
+      dailyCount.set(key, 0);
+    }
+
+    attempts.forEach((att) => {
+      if (!att.completed_at) return;
+      const key = att.completed_at.toISOString().split('T')[0];
+      dailyCount.set(key, (dailyCount.get(key) || 0) + 1);
+    });
+
+    // Build response
+    const result = Array.from(dailyCount.entries()).map(([date, completed]) => {
+      const day = new Date(date).toLocaleString('en-US', { weekday: 'short' });
+      return {
+        day, // 'Mon', 'Tue', ...
+        completed, // số bài làm xong
+        date, // yyyy-mm-dd
+      };
+    });
+
+    return result;
+  }
+
+  async is_admin(userId: number): Promise<boolean> {
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user.role === 'admin';
+  }
+
+  async getAllUsersByKeySearch(
+    adminId: number,
+    query?: string,
+  ): Promise<User[]> {
+    const isAdmin = await this.is_admin(adminId);
+    if (!isAdmin) {
+      throw new BadRequestException('Only admin can access this resource');
+    }
+
+    if (!query || query.trim() === '') {
+      return this.userRepository.find({
+        order: { createdAt: 'DESC' },
+      });
+    }
+
+    return this.userRepository.find({
+      where: [{ full_name: Like(`%${query}%`) }, { email: Like(`%${query}%`) }],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async getCompletedAttemptsByTest(adminId: number, testId: number) {
+    const isAdmin = await this.is_admin(adminId);
+    if (!isAdmin) {
+      throw new BadRequestException('Only admin can access this resource');
+    }
+    const attempts = await this.testAttemptRepo.find({
+      where: {
+        test: { id: testId },
+        is_completed: true,
+      },
+      relations: ['user'],
+      order: { completed_at: 'DESC' },
+    });
+
+    if (!attempts || attempts.length === 0) {
+      throw new NotFoundException('No attempts found');
+    }
+
+    return attempts;
   }
 }

@@ -12,4 +12,3 @@ export class CreateOrUpdateAnswerDto {
   @IsBoolean()
   is_marked?: boolean;
 }
-

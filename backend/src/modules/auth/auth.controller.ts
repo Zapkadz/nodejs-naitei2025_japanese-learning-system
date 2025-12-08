@@ -26,7 +26,10 @@ export class AuthController {
     );
     const accessToken = tokens.accessToken;
     // Reset rate limit on successful login
-    this.rateLimitGuard.resetAttempts({ switchToHttp: () => ({ getRequest: () => request }) } as any);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    this.rateLimitGuard.resetAttempts({
+      switchToHttp: () => ({ getRequest: () => request }),
+    } as any);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
     return this.userService.buildUserResponse(request.user, accessToken);
   }

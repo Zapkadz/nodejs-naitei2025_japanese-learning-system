@@ -1,4 +1,10 @@
-import { IsInt, IsOptional, IsArray, ValidateNested, IsEnum } from 'class-validator';
+import {
+  IsInt,
+  IsOptional,
+  IsArray,
+  ValidateNested,
+  IsEnum,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class AnswerSubmissionDto {
@@ -26,4 +32,3 @@ export class SubmitSectionAttemptDto {
   @IsInt()
   time_remaining?: number;
 }
-

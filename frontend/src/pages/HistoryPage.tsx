@@ -30,7 +30,7 @@ export function HistoryPage() {
   const loadHistory = async () => {
     setLoading(true);
     try {
-      const data = await dataService.getTestAttempts();
+      const data = await dataService.getTestAttempts(user!.id);
       setTestAttempts(data);
     } catch (error) {
       console.error('Failed to load history:', error);

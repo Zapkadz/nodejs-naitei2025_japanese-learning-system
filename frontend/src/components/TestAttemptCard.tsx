@@ -10,8 +10,9 @@ interface TestAttemptCardProps {
 export function TestAttemptCard({ attempt }: TestAttemptCardProps) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const completedSections = attempt.sections?.filter(s => s.status === 'COMPLETED').length || 0;
-  const totalSections = attempt.sections?.length || 0;
+  const sectionAttempts = attempt.section_attempts || attempt.sections || [];
+  const completedSections = sectionAttempts.filter(s => s.status === 'COMPLETED').length;
+  const totalSections = sectionAttempts.length || 3; // Default to 3 sections for JLPT tests
 
   return (
     <div

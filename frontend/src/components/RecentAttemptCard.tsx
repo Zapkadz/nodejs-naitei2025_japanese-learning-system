@@ -13,8 +13,9 @@ interface RecentAttemptCardProps {
 
 export function RecentAttemptCard({ attempt }: RecentAttemptCardProps) {
   const navigate = useNavigate();
-  const completedSections = attempt.sections?.filter(s => s.status === 'COMPLETED').length || 0;
-  const totalSections = attempt.sections?.length || 0;
+  const sectionAttempts = attempt.section_attempts || attempt.sections || [];
+  const completedSections = sectionAttempts.filter(s => s.status === 'COMPLETED').length;
+  const totalSections = sectionAttempts.length;
 
   return (
     <div

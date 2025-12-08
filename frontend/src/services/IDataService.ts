@@ -13,9 +13,13 @@ import type {
   IUserUpdate,
   IPasswordChange,
   ITestAttempt,
+  ISectionAttempt,
+  ISubmission,
+  IResult,
   IWeeklyActivity,
   IActivityHeatmapDay,
   ITest,
+  ITestDetail,
   TestFilter,
 } from '../types';
 
@@ -94,11 +98,65 @@ export interface IDataService {
 
   /**
    * Get all test attempts for a user (optionally filtered by test)
-   * @param userId - User ID
+   * @param userId - User ID (for interface compatibility, backend gets from JWT)
    * @param testId - Optional test ID filter
    * @returns Promise resolving to array of test attempts
    */
-  getTestAttempts(testId?: number): Promise<ITestAttempt[]>;
+  getTestAttempts(userId: number, testId?: number): Promise<ITestAttempt[]>;
+
+  /**
+   * Get user test attempts by test ID
+   * @param testId - Test ID
+   * @returns Promise resolving to array of test attempts for the test
+   */
+  getUserTestAttempts(testId: number): Promise<ITestAttempt[]>;
+
+  // ============================================================================
+  // Section Management
+  // ============================================================================
+
+  /**
+   * Get section detail with questions (for exam)
+   * @param sectionId - Section ID
+   * @returns Promise resolving to section with parts and questions
+   */
+  getSection(sectionId: number): Promise<ISectionWithParts>;
+
+  // ============================================================================
+  // Section Attempt Management
+  // ============================================================================
+
+  /**
+   * Get section attempt detail (includes user answers and correct answers if completed)
+   * @param attemptId - Section attempt ID
+   * @returns Promise resolving to section attempt with answers
+   */
+  getSectionAttempt(attemptId: number): Promise<ISectionAttempt>;
+
+  /**
+   * Update section attempt status (e.g., NOT_STARTED → IN_PROGRESS)
+   * @param attemptId - Section attempt ID
+   * @param status - New status
+   * @returns Promise resolving to updated section attempt
+   */
+  updateSectionAttempt(attemptId: number, status: string): Promise<ISectionAttempt>;
+
+  /**
+   * Submit section attempt answers with status (PAUSED/COMPLETED)
+   * @param attemptId - Section attempt ID
+   * @param answers - User answers array
+   * @param status - Submission status (PAUSED/COMPLETED)
+   * @param timeRemaining - Remaining time in seconds
+   * @returns Promise resolving to result with score
+   */
+  submitSectionAttempt(attemptId: number, answers: IAnswer[], status: string, timeRemaining: number): Promise<IResult>;
+
+  /**
+   * Get attempt result for review
+   * @param attemptId - Section attempt ID
+   * @returns Promise resolving to detailed result
+   */
+  getAttemptResult(attemptId: number): Promise<IResult>;
 
     // ============================================================================
   // User Statistics & Activity
@@ -106,19 +164,32 @@ export interface IDataService {
 
   /**
    * Get user's weekly activity (last 7 days)
-   * @param userId - User ID
    * @returns Promise resolving to array of daily activity data
    */
   getUserWeeklyActivity(): Promise<IWeeklyActivity[]>;
 
-  /**
-   * Get user's activity heatmap data (last 365 days)
-   * @param userId - User ID
-   * @param year - Optional year filter (defaults to current year)
-   * @returns Promise resolving to array of daily activity data
-   */
-  getUserActivityHeatmap(year?: number): Promise<IActivityHeatmapDay[]>;
+  // ============================================================================
+  // Admin Methods
+  // ============================================================================
 
+  /**
+   * Get all users with optional search
+   * @param search - Optional search query for name/email
+   * @returns Promise resolving to array of users
+   */
+  getAllUsers(search?: string): Promise<IUser[]>;
+
+  /**
+   * Get test statistics (completed attempts count)
+   * @param testId - Optional specific test ID
+   * @returns Promise resolving to test statistics
+   */
+  getTestStatistics(testId?: number): Promise<Array<{
+    testId: number;
+    testTitle: string;
+    completedAttempts: number;
+    totalAttempts: number;
+  }>>;
 
    // ============================================================================
   // Test Management
@@ -136,5 +207,5 @@ export interface IDataService {
    * @param id - Test ID
    * @returns Promise resolving to test detail with nested structure
    */
-
+  getTestDetail(id: number): Promise<ITestDetail>;
 }

@@ -46,7 +46,7 @@ export class MockDataService implements IDataService {
       total_score: 85,
       started_at: testAttempt1Date.toISOString(),
       completed_at: new Date(testAttempt1Date.getTime() + 200 * 60 * 1000).toISOString(),
-      sections: [],
+      section_attempts: [],
     });
 
     // Section attempts for test attempt 1
@@ -127,7 +127,7 @@ export class MockDataService implements IDataService {
       total_score: null,
       started_at: testAttempt2Date.toISOString(),
       completed_at: null,
-      sections: [],
+      section_attempts: [],
     });
 
     // Section 1: COMPLETED
@@ -186,7 +186,7 @@ export class MockDataService implements IDataService {
       total_score: null,
       started_at: testAttempt3Date.toISOString(),
       completed_at: null,
-      sections: [],
+      section_attempts: [],
     });
 
     // Section 1: IN_PROGRESS
@@ -740,7 +740,7 @@ export class MockDataService implements IDataService {
       total_score: null,
       started_at: new Date().toISOString(),
       completed_at: null,
-      sections: [],
+      section_attempts: [],
     };
 
     this.testAttempts.set(testAttempt.id, testAttempt);
@@ -756,7 +756,7 @@ export class MockDataService implements IDataService {
     // Get all section attempts for this test attempt
     const sectionAttempts = Array.from(this.sectionAttempts.values())
       .filter(sa => sa.test_attempt_id === testAttemptId)
-      .sort((a, b) => a.section_id - b.section_id);
+      .sort((a, b) => (a.section_id || 0) - (b.section_id || 0));
 
     // Enrich with section details
     const sections: ISectionAttemptWithDetails[] = sectionAttempts.map(sa => {
@@ -914,7 +914,7 @@ export class MockDataService implements IDataService {
     attempt.updated_at = new Date().toISOString();
 
     // Check if all sections are complete, update test attempt
-    const testAttempt = this.testAttempts.get(attempt.test_attempt_id);
+    const testAttempt = this.testAttempts.get(attempt.test_attempt_id || 0);
     if (testAttempt) {
       const allSections = Array.from(this.sectionAttempts.values())
         .filter(sa => sa.test_attempt_id === attempt.test_attempt_id);
@@ -1083,7 +1083,12 @@ export class MockDataService implements IDataService {
     const days: IActivityHeatmapDay[] = [];
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const count = Math.random() < 0.2 ? Math.floor(Math.random() * 5) : 0;
-      days.push({ date: d.toISOString().slice(0, 10), count });
+      const level: 0 | 1 | 2 | 3 | 4 =
+        count === 0 ? 0 :
+        count === 1 ? 1 :
+        count === 2 ? 2 :
+        count === 3 ? 3 : 4;
+      days.push({ date: d.toISOString().slice(0, 10), count, level });
     }
     return days;
   }

@@ -27,6 +27,7 @@ export interface ITest {
   month: number;
   is_active: boolean;
   is_attempted?: boolean; // Has user started this test?
+  is_completed?: boolean; // Has user completed this test (at least one completed attempt)?
   created_at?: string;
   updated_at?: string;
 }
@@ -89,10 +90,13 @@ export interface IUser {
   email: string;
   password?: string; // Optional (not returned in API responses)
   full_name: string;
-  urlAvatar: string | null;
+  urlAvatar?: string | null;
+  image?: string | null; // Backend returns 'image' instead of 'urlAvatar'
   role: UserRole;
   created_at?: string;
+  createdAt?: string; // Backend returns 'createdAt' (camelCase)
   updated_at?: string;
+  updatedAt?: string; // Backend returns 'updatedAt' (camelCase)
 }
 
 // Test Attempt (includes all 3 sections)
@@ -107,7 +111,8 @@ export interface ITestAttempt {
   total_score: number | null;
   started_at: string;
   completed_at: string | null;
-  sections: ISectionAttemptWithDetails[]; // Array of 3 section attempts
+  section_attempts: ISectionAttemptWithDetails[]; // Backend returns section_attempts (snake_case)
+  sections?: ISectionAttemptWithDetails[]; // Alias for compatibility
 }
 
 export interface ISectionAttemptWithDetails extends ISectionAttempt {
@@ -117,8 +122,10 @@ export interface ISectionAttemptWithDetails extends ISectionAttempt {
 
 export interface ISectionAttempt {
   id: number;
-  test_attempt_id: number; // FK to test_attempts
-  section_id: number;
+  test_attempt_id?: number; // FK to test_attempts (snake_case)
+  testAttemptId?: number; // Alias (camelCase)
+  section_id?: number; // section ID (snake_case from backend)
+  sectionId?: number; // Alias (camelCase)
   status: AttemptStatus;
   score: number | null;
   correct_count: number | null;
@@ -261,24 +268,7 @@ export interface ISectionProgress {
   answered: number;
   marked: number;
   total: number;
-}
-
-
-export interface ITestAttempt {
-  id: number;
-  user_id: number;
-  test_id: number;
-  test_title: string;
-  level: JLPTLevel;
-  is_completed: boolean;
-  is_passed: boolean | null;
-  total_score: number | null;
-  started_at: string;
-  completed_at: string | null;
-  sections: ISectionAttemptWithDetails[]; // Array of 3 section attempts
-}
-
-// ============================================================================
+}// ============================================================================
 // User Statistics & Activity
 // ============================================================================
 

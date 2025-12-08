@@ -10,7 +10,8 @@ import {
   Moon, 
   Sun, 
   Languages,
-  ChevronDown 
+  ChevronDown,
+  Shield
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { WeeklyActivityChart } from '../components/WeeklyActivityChart';
@@ -98,6 +99,17 @@ export function MainLayout({ children }: MainLayoutProps) {
               >
                 <History className="w-5 h-5" />
               </button>
+
+              {/* Admin (only for ADMIN role) */}
+              {user?.role?.toUpperCase() === 'ADMIN' && (
+                <button
+                  onClick={() => navigate('/admin')}
+                  className="p-2.5 text-white dark:text-emerald-400 hover:bg-white/20 dark:hover:bg-emerald-900/20 rounded-xl transition-all hover:scale-110 hover:shadow-lg hover:shadow-white/30 dark:hover:shadow-emerald-900/50"
+                  title="Admin"
+                >
+                  <Shield className="w-5 h-5" />
+                </button>
+              )}
 
               {/* Language Selector */}
               <div className="relative">

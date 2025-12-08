@@ -35,6 +35,37 @@ export function DashboardPage() {
       };
       let data = await dataService.getTests(filter);
       
+      // Fetch all test attempts to check which tests have been attempted/completed
+      try {
+        const allAttempts = await dataService.getTestAttempts();
+        const attemptedTestIds = new Set(allAttempts.map(attempt => attempt.testId || (attempt as any).test_id));
+        const completedTestIds = new Set(
+          allAttempts
+            .filter(attempt => attempt.is_completed)
+            .map(attempt => attempt.testId || (attempt as any).test_id)
+        );
+        
+        // Store original values from backend for comparison
+        const originalIsAttempted = new Map(data.map(test => [test.id, test.is_attempted]));
+        
+        // Update is_attempted and is_completed based on actual test attempts
+        data = data.map(test => ({
+          ...test,
+          is_attempted: attemptedTestIds.has(test.id),
+          is_completed: completedTestIds.has(test.id)
+        }));
+        
+        console.log('[DashboardPage] Tests with updated status:', data.map(t => ({ 
+          id: t.id, 
+          title: t.title, 
+          backend_is_attempted: originalIsAttempted.get(t.id),
+          calculated_is_attempted: attemptedTestIds.has(t.id),
+          calculated_is_completed: completedTestIds.has(t.id)
+        })));
+      } catch (attemptError) {
+        console.error('Failed to fetch test attempts for status check:', attemptError);
+      }
+      
       // Filter by status
       if (selectedStatus === 'ATTEMPTED') {
         data = data.filter(test => test.is_attempted);

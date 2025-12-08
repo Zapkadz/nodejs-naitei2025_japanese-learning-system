@@ -113,6 +113,9 @@ const resources = {
         changePassword: 'Change Password',
         changePasswordTitle: 'Change Password',
         currentPassword: 'Current Password',
+        currentPasswordRequired: 'Please enter your current password',
+        enterCurrentPassword: 'Enter your current password',
+        currentPasswordHelper: 'Required to verify your identity',
         newPassword: 'New Password',
         confirmNewPassword: 'Confirm New Password',
         updatePassword: 'Update Password',
@@ -136,15 +139,41 @@ const resources = {
         status: {
           done: '✓ Done',
           new: '✨ New',
+          completed: 'Completed',
+          notStarted: 'Not Started',
+          paused: 'Paused',
         },
         cta: {
           continue: 'Continue',
-          start: 'Start Now',
+          start: 'Start',
+          review: 'Review',
         },
+        questions: 'Questions',
+        time: 'Time',
+        timeRemaining: 'Remaining',
+        score: 'Score',
+        correct: 'Correct',
+        // Test Attempts Page
+        errorLoading: 'Unable to load data. Please try again.',
+        totalAttempts: 'Total Attempts',
+        bestScore: 'Best Score',
+        averageScore: 'Average Score',
+        attemptHistory: 'Attempt History ({{count}})',
+        startNew: 'Start New Test',
+        startTest: 'Start Test',
+        level: 'Level:',
+        minutes: 'Minutes',
       },
 
-     
-     
+      // Exam Page
+      exam: {
+        question: 'Q',
+        correct: 'Correct',
+        incorrect: 'Incorrect',
+        explanation: 'Explanation',
+        markForReview: 'Mark for review',
+        sectionNotFound: 'Section not found',
+      },
 
       // History
       history: {
@@ -276,6 +305,9 @@ const resources = {
         changePassword: 'パスワード変更',
         changePasswordTitle: 'パスワード変更',
         currentPassword: '現在のパスワード',
+        currentPasswordRequired: '現在のパスワードを入力してください',
+        enterCurrentPassword: '現在のパスワードを入力',
+        currentPasswordHelper: '本人確認のため必要です',
         newPassword: '新しいパスワード',
         confirmNewPassword: '新しいパスワード確認',
         updatePassword: 'パスワード更新',
@@ -320,11 +352,40 @@ const resources = {
         status: {
           done: '✓ 完了',
           new: '✨ 新規',
+          completed: '完了',
+          notStarted: '未開始',
+          paused: '一時停止',
         },
         cta: {
           continue: '続ける',
-          start: '今すぐ開始',
+          start: '開始',
+          review: '復習',
         },
+        questions: '問題数',
+        time: '時間',
+        timeRemaining: '残り時間',
+        score: 'スコア',
+        correct: '正解',
+        // Test Attempts Page
+        errorLoading: 'データを読み込めません。もう一度お試しください。',
+        totalAttempts: '総試行回数',
+        bestScore: '最高スコア',
+        averageScore: '平均スコア',
+        attemptHistory: '試行履歴 ({{count}})',
+        startNew: '新しいテストを開始',
+        startTest: 'テスト開始',
+        level: 'レベル:',
+        minutes: '分',
+      },
+
+      // Exam Page
+      exam: {
+        question: '問',
+        correct: '正解',
+        incorrect: '不正解',
+        explanation: '解説',
+        markForReview: 'レビュー用にマーク',
+        sectionNotFound: 'セクションが見つかりません',
       },
       
     },
@@ -434,6 +495,9 @@ const resources = {
         changePassword: 'Đổi mật khẩu',
         changePasswordTitle: 'Đổi mật khẩu',
         currentPassword: 'Mật khẩu hiện tại',
+        currentPasswordRequired: 'Vui lòng nhập mật khẩu hiện tại',
+        enterCurrentPassword: 'Nhập mật khẩu hiện tại của bạn',
+        currentPasswordHelper: 'Bắt buộc để xác minh danh tính',
         newPassword: 'Mật khẩu mới',
         confirmNewPassword: 'Xác nhận mật khẩu mới',
         updatePassword: 'Cập nhật mật khẩu',
@@ -478,11 +542,40 @@ const resources = {
         status: {
           done: '✓ Đã xong',
           new: '✨ Mới',
+          completed: 'Hoàn thành',
+          notStarted: 'Chưa làm',
+          paused: 'Tạm dừng',
         },
         cta: {
           continue: 'Tiếp tục',
-          start: 'Bắt đầu ngay',
+          start: 'Bắt đầu',
+          review: 'Xem lại',
         },
+        questions: 'Câu hỏi',
+        time: 'Thời gian',
+        timeRemaining: 'Còn lại',
+        score: 'Điểm',
+        correct: 'Đúng',
+        // Test Attempts Page
+        errorLoading: 'Không thể tải dữ liệu. Vui lòng thử lại.',
+        totalAttempts: 'Tổng số lần làm',
+        bestScore: 'Điểm cao nhất',
+        averageScore: 'Điểm trung bình',
+        attemptHistory: 'Lịch sử làm bài ({{count}})',
+        startNew: 'Làm bài mới',
+        startTest: 'Bắt đầu làm bài',
+        level: 'Level:',
+        minutes: 'Phút',
+      },
+
+      // Exam Page
+      exam: {
+        question: 'Câu',
+        correct: 'Đúng',
+        incorrect: 'Sai',
+        explanation: 'Giải thích',
+        markForReview: 'Đánh dấu để xem lại',
+        sectionNotFound: 'Không tìm thấy phần thi',
       },
       
     

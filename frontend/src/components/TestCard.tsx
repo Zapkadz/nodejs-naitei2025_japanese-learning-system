@@ -17,6 +17,7 @@ export function TestCard({ test }: TestCardProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isAttempted = test.is_attempted || false;
+  const isCompleted = test.is_completed || false;
 
   const getLevelGradient = (level: JLPTLevel) => {
     const gradients = {
@@ -83,20 +84,26 @@ export function TestCard({ test }: TestCardProps) {
             {test.year}.{String(test.month).padStart(2, '0')}
           </div>
 
-          {isAttempted ? (
+          {isCompleted ? (
             <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded">
-              {t('tests.status.done', '✓ Done')}
+              {t('tests.status.completed', '✓ Hoàn thành')}
+            </span>
+          ) : isAttempted ? (
+            <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">
+              {t('tests.status.inProgress', '⏱ Chưa hoàn thành')}
             </span>
           ) : (
             <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded animate-pulse">
-              {t('tests.status.new', '✨ New')}
+              {t('tests.status.new', '✨ Mới')}
             </span>
           )}
         </div>
 
         {/* CTA - Prominent */}
         <button className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/30 group-hover:shadow-xl group-hover:shadow-emerald-500/40 transition-all">
-          <span>{isAttempted ? t('tests.cta.continue', 'Continue') : t('tests.cta.start', 'Start Now')}</span>
+          <span>
+            {isCompleted ? t('tests.cta.review', 'Xem lại') : isAttempted ? t('tests.cta.continue', 'Tiếp tục') : t('tests.cta.start', 'Bắt đầu')}
+          </span>
           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
         </button>
       </div>

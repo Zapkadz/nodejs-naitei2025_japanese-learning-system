@@ -27,6 +27,7 @@ export function ProfilePage() {
     full_name: user?.full_name || '',
     email: user?.email || '',
     urlAvatar: user?.urlAvatar || '',
+    currentPassword: '', // Required by backend for profile updates
   });
   const [previewAvatar, setPreviewAvatar] = useState(user?.urlAvatar || '');
   const [tempAvatar, setTempAvatar] = useState(user?.urlAvatar || '');
@@ -41,6 +42,7 @@ export function ProfilePage() {
         full_name: user.full_name,
         email: user.email,
         urlAvatar: user.urlAvatar || '',
+        currentPassword: '',
       });
       setPreviewAvatar(user.urlAvatar || '');
       setTempAvatar(user.urlAvatar || '');
@@ -117,15 +119,25 @@ export function ProfilePage() {
   const handleSave = async () => {
     setIsSaving(true);
     setError(null);
+    
+    // Validate current password is provided
+    if (!formData.currentPassword.trim()) {
+      setError(t('profile.currentPasswordRequired'));
+      setIsSaving(false);
+      return;
+    }
+    
     try {
-      const updateData: IUserUpdate = {
+      const updateData: IUserUpdate & { currentPassword: string } = {
         full_name: formData.full_name,
+        currentPassword: formData.currentPassword,
       };
       
       const updatedUser = await dataService.updateUser(updateData);
       updateUser(updatedUser);
       
       setIsEditing(false);
+      setFormData(prev => ({ ...prev, currentPassword: '' })); // Clear password after save
       setSuccessMessage(t('profile.updateSuccess'));
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
@@ -143,11 +155,13 @@ export function ProfilePage() {
         full_name: user.full_name,
         email: user.email,
         urlAvatar: user.urlAvatar || '',
+        currentPassword: '',
       });
       setPreviewAvatar(user.urlAvatar || '');
       setTempAvatar(user.urlAvatar || '');
     }
     setIsEditing(false);
+    setError(null);
   };
 
   const handlePasswordSuccess = (message: string) => {
@@ -311,6 +325,27 @@ export function ProfilePage() {
                 </p>
               </div>
             </div>
+
+            {/* Current Password - Required when editing */}
+            {isEditing && (
+              <div className="group">
+                <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  {t('profile.currentPassword')} *
+                </label>
+                <input
+                  type="password"
+                  name="currentPassword"
+                  value={formData.currentPassword}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                  placeholder={t('profile.enterCurrentPassword')}
+                  required
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('profile.currentPasswordHelper')}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

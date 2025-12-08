@@ -9,19 +9,20 @@ import { useAuthStore } from '../store/useAuthStore';
 export function LandingPage(): React.ReactElement {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { isAuthenticated, token } = useAuthStore();
+  const { isAuthenticated, token, user } = useAuthStore();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     return localStorage.getItem('theme') === 'dark';
   });
   const [showLangMenu, setShowLangMenu] = useState(false);
 
-  // Redirect to dashboard if already authenticated
+  // Redirect to appropriate page if already authenticated
   useEffect(() => {
-    if (isAuthenticated && token) {
-      navigate('/dashboard', { replace: true });
+    if (isAuthenticated && token && user) {
+      const destination = user.role?.toUpperCase() === 'ADMIN' ? '/admin' : '/dashboard';
+      navigate(destination, { replace: true });
     }
-  }, [isAuthenticated, token, navigate]);
+  }, [isAuthenticated, token, user, navigate]);
 
   // Handle theme toggle
   useEffect(() => {
@@ -35,8 +36,9 @@ export function LandingPage(): React.ReactElement {
   }, [isDark]);
 
   const handleStart = () => {
-    if (isAuthenticated && token) {
-      navigate('/dashboard');
+    if (isAuthenticated && token && user) {
+      const destination = user.role?.toUpperCase() === 'ADMIN' ? '/admin' : '/dashboard';
+      navigate(destination);
     } else {
       setShowAuthModal(true);
     }
@@ -45,7 +47,9 @@ export function LandingPage(): React.ReactElement {
   const handleAuthSuccess = () => {
     setShowAuthModal(false);
     setTimeout(() => {
-      navigate('/dashboard');
+      const { user } = useAuthStore.getState();
+      const destination = user?.role?.toUpperCase() === 'ADMIN' ? '/admin' : '/dashboard';
+      navigate(destination);
     }, 100);
   };
 

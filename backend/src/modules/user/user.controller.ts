@@ -120,7 +120,7 @@ export class UserController {
   @Get('weekly-activity')
   getWeeklyActivity(@Request() req) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const userId = req.user.id as number;
+    const userId = req.user.userId as number;
     return this.userService.getWeeklyActivity(userId);
   }
 

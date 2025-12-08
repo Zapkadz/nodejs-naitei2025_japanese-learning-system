@@ -194,6 +194,7 @@ export class UserService {
         day, // 'Mon', 'Tue', ...
         completed, // số bài làm xong
         date, // yyyy-mm-dd
+        userId,
       };
     });
 

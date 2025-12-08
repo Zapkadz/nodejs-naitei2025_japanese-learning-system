@@ -9,6 +9,9 @@ import {
   UploadedFile,
   BadRequestException,
   ForbiddenException,
+  Get,
+  Query,
+  Param,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -111,5 +114,43 @@ export class UserController {
         image: updatedUser?.image,
       },
     };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('weekly-activity')
+  getWeeklyActivity(@Request() req) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const userId = req.user.id as number;
+    return this.userService.getWeeklyActivity(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/all')
+  async getAllUsersByAdmin(@Request() req, @Query('query') query?: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const adminId = req.user.userId as number;
+
+    const rawUsers = await this.userService.getAllUsersByKeySearch(
+      adminId,
+      query,
+    );
+
+    return this.userService.buildUsersResponse(rawUsers);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/:testId/completed-attempts')
+  async getCompletedAttempts(
+    @Param('testId') testId: number,
+    @Request() request: any,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const adminId = request.user.userId as number;
+    const attempts = await this.userService.getCompletedAttemptsByTest(
+      adminId,
+      testId,
+    );
+
+    return this.userService.buildCompletedAttemptsResponse(attempts);
   }
 }

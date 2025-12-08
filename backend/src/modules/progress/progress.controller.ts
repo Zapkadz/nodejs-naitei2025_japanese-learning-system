@@ -109,10 +109,11 @@ export class ProgressController {
   ): Promise<{ sectionAttempt: SectionAttemptResponseDto }> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const userId = req.user.userId;
-    const sectionAttempt = await this.progressService.updateSectionAttemptToInProgress(
-      userId as number,
-      sectionAttemptId,
-    );
+    const sectionAttempt =
+      await this.progressService.updateSectionAttemptToInProgress(
+        userId as number,
+        sectionAttemptId,
+      );
     const response =
       this.progressService.buildSectionAttemptResponse(sectionAttempt);
     return { sectionAttempt: response };

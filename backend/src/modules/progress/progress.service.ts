@@ -61,14 +61,15 @@ export class ProgressService {
       total_score: attempt.total_score,
       started_at: attempt.started_at || undefined,
       completed_at: attempt.completed_at || undefined,
-      section_attempts: attempt.section_attempts?.map((s) => ({
-        id: s.id,
-        sectionId: s.section.id,
-        status: s.status,
-        score: s.score ?? null,
-        correct_count: s.correct_count ?? 0,
-        time_remaining: s.time_remaining ?? 0,
-      })) || [],
+      section_attempts:
+        attempt.section_attempts?.map((s) => ({
+          id: s.id,
+          sectionId: s.section.id,
+          status: s.status,
+          score: s.score ?? null,
+          correct_count: s.correct_count ?? 0,
+          time_remaining: s.time_remaining ?? 0,
+        })) || [],
     };
   }
 
@@ -101,7 +102,11 @@ export class ProgressService {
     };
 
     // Include user_answers if status is PAUSED or COMPLETED
-    if (includeUserAnswers && (sectionAttempt.status === 'PAUSED' || sectionAttempt.status === 'COMPLETED')) {
+    if (
+      includeUserAnswers &&
+      (sectionAttempt.status === 'PAUSED' ||
+        sectionAttempt.status === 'COMPLETED')
+    ) {
       const includeCorrectAnswer = sectionAttempt.status === 'COMPLETED';
       response.user_answers = await this.getAnswersBySectionAttemptId(
         sectionAttempt.test_attempt.user.id,
@@ -225,7 +230,9 @@ export class ProgressService {
     }
 
     // Sort parts by part_number
-    const sortedParts = section.parts.sort((a, b) => a.part_number - b.part_number);
+    const sortedParts = section.parts.sort(
+      (a, b) => a.part_number - b.part_number,
+    );
 
     return {
       id: section.id,
@@ -235,22 +242,26 @@ export class ProgressService {
       order_index: section.order_index,
       parts: sortedParts.map((part) => {
         // Sort questions by question_number
-        const sortedQuestions = part.questions?.sort((a, b) => a.question_number - b.question_number) || [];
-        
+        const sortedQuestions =
+          part.questions?.sort(
+            (a, b) => a.question_number - b.question_number,
+          ) || [];
         return {
           id: part.id,
           part_number: part.part_number,
           title: part.title,
-          passages: part.passages?.map((passage) => ({
-            id: passage.id,
-            title: passage.title,
-            content: passage.content,
-            image_url: passage.image_url,
-          })) || [],
+          passages:
+            part.passages?.map((passage) => ({
+              id: passage.id,
+              title: passage.title,
+              content: passage.content,
+              image_url: passage.image_url,
+            })) || [],
           questions: sortedQuestions.map((question) => {
             // Sort options by order_index
-            const sortedOptions = question.options?.sort((a, b) => a.order_index - b.order_index) || [];
-            
+            const sortedOptions =
+              question.options?.sort((a, b) => a.order_index - b.order_index) ||
+              [];
             return {
               id: question.id,
               question_number: question.question_number,
@@ -346,8 +357,13 @@ export class ProgressService {
     }
 
     // Include user_answers if status is PAUSED or COMPLETED
-    const includeUserAnswers = sectionAttempt.status === 'PAUSED' || sectionAttempt.status === 'COMPLETED';
-    return this.buildSectionAttemptWithDetailsResponse(sectionAttempt, includeUserAnswers);
+    const includeUserAnswers =
+      sectionAttempt.status === 'PAUSED' ||
+      sectionAttempt.status === 'COMPLETED';
+    return this.buildSectionAttemptWithDetailsResponse(
+      sectionAttempt,
+      includeUserAnswers,
+    );
   }
 
   /**
@@ -374,7 +390,10 @@ export class ProgressService {
     }
 
     // Only allow status change to IN_PROGRESS from NOT_STARTED or PAUSED
-    if (sectionAttempt.status !== 'NOT_STARTED' && sectionAttempt.status !== 'PAUSED') {
+    if (
+      sectionAttempt.status !== 'NOT_STARTED' &&
+      sectionAttempt.status !== 'PAUSED'
+    ) {
       throw new BadRequestException(
         `Cannot change status to IN_PROGRESS from ${sectionAttempt.status}`,
       );
@@ -439,10 +458,7 @@ export class ProgressService {
 
     // Save/update all answers
     for (const answerDto of submitDto.answers) {
-      await this.createOrUpdateAnswerInternal(
-        sectionAttempt,
-        answerDto,
-      );
+      await this.createOrUpdateAnswerInternal(sectionAttempt, answerDto);
     }
 
     // Update section attempt status
@@ -527,8 +543,11 @@ export class ProgressService {
     // Determine if answer is correct and validate option (only query once)
     let isCorrect = false;
     let selectedOption: Option | null = null;
-    
-    if (answerDto.selected_option_id !== null && answerDto.selected_option_id !== undefined) {
+
+    if (
+      answerDto.selected_option_id !== null &&
+      answerDto.selected_option_id !== undefined
+    ) {
       selectedOption = await this.optionRepo.findOne({
         where: { id: answerDto.selected_option_id },
         relations: ['question'],
@@ -617,7 +636,10 @@ export class ProgressService {
 
     // Determine if answer is correct
     let isCorrect = false;
-    if (answerDto.selected_option_id !== null && answerDto.selected_option_id !== undefined) {
+    if (
+      answerDto.selected_option_id !== null &&
+      answerDto.selected_option_id !== undefined
+    ) {
       const selectedOption = await this.optionRepo.findOne({
         where: { id: answerDto.selected_option_id },
         relations: ['question'],

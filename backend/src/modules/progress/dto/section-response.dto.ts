@@ -39,4 +39,3 @@ export class SectionResponseDto {
   order_index: number;
   parts: PartResponseDto[];
 }
-

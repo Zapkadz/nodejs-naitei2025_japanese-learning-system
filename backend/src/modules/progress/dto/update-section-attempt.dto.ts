@@ -1,6 +1,10 @@
 import { IsEnum, IsInt, IsOptional, Min } from 'class-validator';
 
-export type AttemptStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED';
+export type AttemptStatus =
+  | 'NOT_STARTED'
+  | 'IN_PROGRESS'
+  | 'PAUSED'
+  | 'COMPLETED';
 
 export class UpdateSectionAttemptDto {
   @IsOptional()
@@ -19,4 +23,3 @@ export class UpdateSectionAttemptDto {
   @Min(0)
   time_remaining?: number;
 }
-

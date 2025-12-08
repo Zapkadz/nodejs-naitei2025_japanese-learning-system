@@ -20,4 +20,3 @@ export class SectionAttemptWithDetailsResponseDto extends SectionAttemptResponse
   time_limit: number;
   user_answers?: UserAnswerResponseDto[]; // Only included when status is PAUSED or COMPLETED
 }
-

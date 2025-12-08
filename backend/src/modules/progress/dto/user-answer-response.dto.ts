@@ -8,4 +8,3 @@ export class UserAnswerResponseDto {
   createdAt: Date;
   updatedAt: Date;
 }
-

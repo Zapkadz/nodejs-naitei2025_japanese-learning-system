@@ -56,6 +56,7 @@ export class ProgressService {
     return {
       id: attempt.id,
       testId: attempt.test.id,
+      test_title: attempt.test.title,
       is_completed: attempt.is_completed,
       is_passed: attempt.is_passed,
       total_score: attempt.total_score,
@@ -68,6 +69,7 @@ export class ProgressService {
           status: s.status,
           score: s.score ?? null,
           correct_count: s.correct_count ?? 0,
+          question_count: s.question_count ?? 0,
           time_remaining: s.time_remaining ?? 0,
         })) || [],
     };
@@ -212,6 +214,34 @@ export class ProgressService {
     }
 
     return this.checkAndCompleteTestAttempt(attempt);
+  }
+
+  async getTestAttemptsByTestId(
+    userId: number,
+    testId: number,
+  ): Promise<TestAttempt[]> {
+    const attempts = await this.testAttemptRepo.find({
+      where: {
+        user: { id: userId },
+        test: { id: testId },
+      },
+      relations: [
+        'user',
+        'test',
+        'section_attempts',
+        'section_attempts.section',
+      ],
+      order: {
+        createdAt: 'DESC', // attempt mới nhất lên đầu
+      },
+    });
+    if (!attempts || attempts.length === 0) {
+      throw new NotFoundException('No attempts found for this test and user');
+    }
+    await Promise.all(
+      attempts.map((attempt) => this.checkAndCompleteTestAttempt(attempt)),
+    );
+    return attempts;
   }
 
   async getSection(sectionId: number): Promise<SectionResponseDto> {

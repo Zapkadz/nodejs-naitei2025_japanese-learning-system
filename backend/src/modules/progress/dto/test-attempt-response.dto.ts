@@ -10,6 +10,7 @@ export class SectionAttemptResponseDto {
 export class TestAttemptResponseDto {
   id: number;
   testId: number;
+  test_title: string;
   is_completed: boolean;
   total_score?: number | null;
   is_passed?: boolean | null;

@@ -62,6 +62,27 @@ export class ProgressController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('test-attempts-by-test/:testId')
+  async getTestAttemptsByTestId(
+    @Param('testId', ParseIntPipe) testId: number,
+    @Request() req,
+  ): Promise<{ testAttempts: TestAttemptResponseDto[] }> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const userId = req.user.userId as number;
+
+    const attempts = await this.progressService.getTestAttemptsByTestId(
+      userId,
+      testId,
+    );
+
+    const response = attempts.map((a) =>
+      this.progressService.buildTestAttemptResponse(a),
+    );
+
+    return { testAttempts: response };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('test-attempt/start/:testId')
   async startTestAttempt(
     @Param('testId') testId: number,

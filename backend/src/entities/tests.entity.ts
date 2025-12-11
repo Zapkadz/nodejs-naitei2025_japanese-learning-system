@@ -21,6 +21,9 @@ export class Test extends BaseEntity {
   @Column({ default: true })
   is_active: boolean;
 
+  @Column({ length: 10, default: 'all' })
+  skill: string; // all, goi, bun, dokkai, choukai
+
   @OneToMany(() => Section, (section) => section.test)
   sections: Section[];
 

@@ -42,8 +42,10 @@ export function HistoryPage() {
   useEffect(() => {
     const loadHeatmap = async () => {
       try {
-        const days = await dataService.getUserActivityHeatmap(selectedYear);
-        setHeatmapDays(Array.isArray(days) ? days : []);
+        // TODO: Implement getUserActivityHeatmap in IDataService
+        // const days = await dataService.getUserActivityHeatmap(selectedYear);
+        // setHeatmapDays(Array.isArray(days) ? days : []);
+        setHeatmapDays([]);
       } catch (err) {
         console.error('Failed to load activity heatmap:', err);
         setHeatmapDays([]);

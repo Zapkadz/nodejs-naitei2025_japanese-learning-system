@@ -26,7 +26,7 @@ export function TestAttemptsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hasFetchedRef = useRef(false);
-  const prevIdRef = useRef<string | undefined>();
+  const prevIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     // Reset hasFetchedRef khi id thay đổi

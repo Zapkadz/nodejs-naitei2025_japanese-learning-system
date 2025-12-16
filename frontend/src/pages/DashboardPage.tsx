@@ -9,6 +9,7 @@ import { Sparkles } from 'lucide-react';
 import { dataService } from '../services';
 import type { ITest, JLPTLevel } from '../types';
 import { TestCardList } from '../components/TestCardList';
+import { FilterBar, FilterPill, FilterSelect, FilterDivider } from '../components/filters';
 
 export function DashboardPage() {
   const { t } = useTranslation();
@@ -22,6 +23,23 @@ export function DashboardPage() {
   const levels: Array<JLPTLevel | 'ALL'> = ['ALL', 'N1', 'N2', 'N3', 'N4', 'N5'];
   const years = [2024, 2023, 2022, 2021, 2020];
 
+  const levelLabel = (level: JLPTLevel | 'ALL') => 
+    level === 'ALL' ? t('dashboard.allLevels', '🌟 All') : level;
+
+  const statusOptions = [
+    { value: 'ALL', label: t('dashboard.status.all', '📋 All Status') },
+    { value: 'ATTEMPTED', label: t('dashboard.status.attempted', '✅ Attempted') },
+    { value: 'NOT_ATTEMPTED', label: t('dashboard.status.notAttempted', '✨ Not Attempted') },
+  ];
+
+  const yearOptions = [
+    { value: 'ALL', label: t('dashboard.allYears', '📅 All Years') },
+    ...years.map(year => ({ 
+      value: year, 
+      label: t('dashboard.yearOption', '📅 {{year}}', { year }) 
+    })),
+  ];
+
   useEffect(() => {
     fetchTests();
   }, [selectedLevel, selectedYear, selectedStatus]);
@@ -32,17 +50,18 @@ export function DashboardPage() {
       const filter = {
         level: selectedLevel !== 'ALL' ? selectedLevel : undefined,
         year: selectedYear !== 'ALL' ? selectedYear : undefined,
+        skill: 'all' as const, // Only show full tests in Dashboard
       };
       let data = await dataService.getTests(filter);
       
       // Fetch all test attempts to check which tests have been attempted/completed
       try {
-        const allAttempts = await dataService.getTestAttempts();
-        const attemptedTestIds = new Set(allAttempts.map(attempt => attempt.testId || (attempt as any).test_id));
+        const allAttempts = await dataService.getTestAttempts(1, 1000);
+        const attemptedTestIds = new Set(allAttempts.map(attempt => attempt.test_id));
         const completedTestIds = new Set(
           allAttempts
             .filter(attempt => attempt.is_completed)
-            .map(attempt => attempt.testId || (attempt as any).test_id)
+            .map(attempt => attempt.test_id)
         );
         
         // Store original values from backend for comparison
@@ -105,66 +124,36 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* Filter Bar - Sleek & Compact */}
-      <div className="flex flex-wrap items-center gap-3">
+      {/* Filter Bar - Clean & Reusable Components */}
+      <FilterBar>
         {/* Level Pills */}
         <div className="flex items-center gap-2">
           {levels.map((level) => (
-            <button
+            <FilterPill
               key={level}
+              label={levelLabel(level)}
+              isActive={selectedLevel === level}
               onClick={() => setSelectedLevel(level)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
-                selectedLevel === level
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 scale-105'
-                  : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 border-2 border-gray-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-700'
-              }`}
-            >
-              {level === 'ALL' ? t('dashboard.allLevels', '🌟 All') : level}
-            </button>
+            />
           ))}
         </div>
 
-        <div className="hidden sm:block w-px h-8 bg-emerald-200 dark:bg-slate-700" />
+        <FilterDivider />
 
         {/* Status Dropdown */}
-        <div className="relative">
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value as 'ALL' | 'ATTEMPTED' | 'NOT_ATTEMPTED')}
-            className="px-4 py-2.5 pr-10 rounded-xl text-sm font-bold bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 border-2 border-emerald-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all cursor-pointer hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-md appearance-none [&>option]:bg-white [&>option]:dark:bg-slate-800 [&>option]:text-gray-900 [&>option]:dark:text-white [&>option]:py-3 [&>option]:px-4 [&>option]:font-medium [&>option]:rounded-lg [&>option:checked]:bg-emerald-100 [&>option:checked]:dark:bg-emerald-900/30 [&>option:checked]:text-emerald-700 [&>option:checked]:dark:text-emerald-300"
-          >
-            <option value="ALL">{t('dashboard.status.all', '📋 All Status')}</option>
-            <option value="ATTEMPTED">{t('dashboard.status.attempted', '✅ Attempted')}</option>
-            <option value="NOT_ATTEMPTED">{t('dashboard.status.notAttempted', '✨ Not Attempted')}</option>
-          </select>
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-emerald-600 dark:text-emerald-400">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
+        <FilterSelect
+          value={selectedStatus}
+          onChange={(val) => setSelectedStatus(val as 'ALL' | 'ATTEMPTED' | 'NOT_ATTEMPTED')}
+          options={statusOptions}
+        />
 
         {/* Year Dropdown */}
-        <div className="relative">
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value === 'ALL' ? 'ALL' : parseInt(e.target.value))}
-            className="px-4 py-2.5 pr-10 rounded-xl text-sm font-bold bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 border-2 border-emerald-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all cursor-pointer hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-md appearance-none [&>option]:bg-white [&>option]:dark:bg-slate-800 [&>option]:text-gray-900 [&>option]:dark:text-white [&>option]:py-3 [&>option]:px-4 [&>option]:font-medium [&>option]:rounded-lg [&>option:checked]:bg-emerald-100 [&>option:checked]:dark:bg-emerald-900/30 [&>option:checked]:text-emerald-700 [&>option:checked]:dark:text-emerald-300"
-          >
-            <option value="ALL">{t('dashboard.allYears', '📅 All Years')}</option>
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {t('dashboard.yearOption', '📅 {{year}}', { year })}
-              </option>
-            ))}
-          </select>
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-emerald-600 dark:text-emerald-400">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
-      </div>
+        <FilterSelect
+          value={selectedYear}
+          onChange={(val) => setSelectedYear(val as number | 'ALL')}
+          options={yearOptions}
+        />
+      </FilterBar>
 
       {/* Test Grid */}
       <TestCardList 

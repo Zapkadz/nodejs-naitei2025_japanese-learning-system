@@ -73,6 +73,8 @@ const resources = {
         history: 'History',
         profile: 'Profile',
         settings: 'Settings',
+        practiceTests: 'Practice Tests',
+        practiceSkills: 'Practice Skills',
       },
 
       // Dashboard
@@ -267,6 +269,8 @@ const resources = {
         history: '履歴',
         profile: 'プロフィール',
         settings: '設定',
+        practiceTests: '練習問題',
+        practiceSkills: 'スキル練習',
       },
 
       // Dashboard
@@ -457,6 +461,8 @@ const resources = {
         history: 'Lịch sử',
         profile: 'Hồ sơ',
         settings: 'Cài đặt',
+        practiceTests: 'Luyện đề',
+        practiceSkills: 'Luyện kỹ năng',
       },
 
       // Dashboard

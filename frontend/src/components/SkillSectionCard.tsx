@@ -1,13 +1,13 @@
 /**
- * Section Card Component
- * Compact and elegant card for section display
+ * Skill Section Card Component
+ * For skill practice - without date display, purple theme
  */
 
 import { useTranslation } from 'react-i18next';
-import { Book, Headphones, FileText, Clock, CheckCircle, PlayCircle, PenTool, Languages, BookOpen } from 'lucide-react';
+import { Book, Headphones, FileText, Clock, CheckCircle, PlayCircle, PenTool, Languages, BookOpen, Zap } from 'lucide-react';
 import { HTMLRenderer } from './HTMLRenderer';
 
-interface SectionCardProps {
+interface SkillSectionCardProps {
   section: {
     id: number;
     name: string;
@@ -20,11 +20,12 @@ interface SectionCardProps {
   };
   index: number;
   onClick: () => void;
-  mode?: 'detail' | 'attempt'; // detail = TestDetailPage, attempt = TestAttemptDetailPage
+  mode?: 'detail' | 'attempt';
 }
 
-export function SectionCard({ section, index, onClick, mode = 'detail' }: SectionCardProps) {
+export function SkillSectionCard({ section, index, onClick, mode = 'detail' }: SkillSectionCardProps) {
   const { t } = useTranslation();
+  
   const getSectionIcon = (sectionName: string | undefined, index: number) => {
     if (!sectionName) {
       return <FileText className="w-5 h-5" />;
@@ -106,9 +107,9 @@ export function SectionCard({ section, index, onClick, mode = 'detail' }: Sectio
   return (
     <div
       onClick={onClick}
-      className="group relative bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-gray-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500 shadow-md hover:shadow-xl hover:shadow-emerald-500/15 dark:hover:shadow-emerald-500/25 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer"
+      className="group relative bg-white dark:bg-slate-900 rounded-xl overflow-hidden border-2 border-emerald-200 dark:border-emerald-800 hover:border-emerald-400 dark:hover:border-emerald-500 shadow-md hover:shadow-xl hover:shadow-emerald-500/15 dark:hover:shadow-emerald-500/25 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer"
     >
-      {/* Top gradient bar */}
+      {/* Top gradient bar - emerald theme */}
       <div className={`h-1 bg-gradient-to-r ${getSectionGradient(index)}`} />
 
       {/* Animated gradient overlay */}
@@ -120,12 +121,18 @@ export function SectionCard({ section, index, onClick, mode = 'detail' }: Sectio
       </div>
 
       <div className="p-4 relative">
-        {/* Header: Icon + Title */}
+        {/* Header: Icon + Title + Skill Badge */}
         <div className="flex items-start gap-3 mb-3">
           <div className={`flex-none w-11 h-11 rounded-lg bg-gradient-to-br ${getSectionGradient(index)} flex items-center justify-center text-white shadow-md group-hover:shadow-lg group-hover:scale-105 group-hover:rotate-2 transition-all duration-300`}>
             {getSectionIcon(section.name, index)}
           </div>
           <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <Zap className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+              <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
+                {t('skills.practice', 'Luyện kỹ năng')}
+              </span>
+            </div>
             <HTMLRenderer
               content={section.name}
               className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2 leading-tight mb-1.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors"
@@ -142,7 +149,7 @@ export function SectionCard({ section, index, onClick, mode = 'detail' }: Sectio
         </div>
 
         {/* Stats - compact and elegant */}
-        <div className="bg-gray-50/80 dark:bg-slate-800/50 rounded-lg p-2.5 mb-3 space-y-1.5 border border-gray-100 dark:border-slate-700/50">
+        <div className="bg-emerald-50/80 dark:bg-emerald-900/20 rounded-lg p-2.5 mb-3 space-y-1.5 border border-emerald-100 dark:border-emerald-800/50">
           {mode === 'attempt' && section.status === 'COMPLETED' ? (
             <>
               <div className="flex items-center justify-between">
@@ -186,8 +193,8 @@ export function SectionCard({ section, index, onClick, mode = 'detail' }: Sectio
           )}
         </div>
 
-        {/* CTA Footer - clean and prominent */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-slate-700">
+        {/* CTA Footer - emerald theme */}
+        <div className="flex items-center justify-between pt-3 border-t border-emerald-200 dark:border-emerald-700">
           <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-500 dark:group-hover:text-emerald-300 transition-colors uppercase tracking-wide">
             {getCTAText()}
           </span>

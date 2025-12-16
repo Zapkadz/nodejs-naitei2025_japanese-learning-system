@@ -10,6 +10,9 @@ import { TestDetailPage } from './pages/TestDetailPage';
 import { TestAttemptDetailPage } from './pages/TestAttemptDetailPage';
 import { ExamPage } from './pages/ExamPage';
 import { AdminPage } from './pages/AdminPage';
+import { SkillsPage } from './pages/SkillsPage';
+import { SkillTestsPage } from './pages/SkillTestsPage';
+import { SkillTestSectionsPage } from './pages/SkillTestSectionsPage';
 import './i18n/config'; 
 
 function App(): React.ReactElement {
@@ -47,6 +50,39 @@ function App(): React.ReactElement {
             <ProtectedRoute>
               <MainLayout>
                 <HistoryPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/skills"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <SkillsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/skills/:skill"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <SkillTestsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/skills/:testId/sections"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <SkillTestSectionsPage />
               </MainLayout>
             </ProtectedRoute>
           }

@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Clock, CheckCircle, X, Play } from 'lucide-react';
 import { useExamStore } from '../store/useExamStore';
-import { useAuthStore } from '../store/useAuthStore';
 import { ConfirmModal } from '../components/ConfirmModal';
 
 interface ExamLayoutProps {

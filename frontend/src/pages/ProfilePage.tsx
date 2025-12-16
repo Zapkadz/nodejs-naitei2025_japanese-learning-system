@@ -1,16 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { 
-  CheckCircle, 
-  Clock, 
-  Settings,
-  Edit2,
-  Lock,
-  Upload,
-  X,
-  AlertCircle
-} from 'lucide-react';
+import { Settings, Edit2, Lock, Upload, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { dataService } from '../services';
 import { useAuthStore } from '../store/useAuthStore';
 import { HTMLRenderer } from '../components/HTMLRenderer';
@@ -183,17 +174,17 @@ export function ProfilePage() {
 
       {/* Success Message */}
       {successMessage && (
-        <div className="p-4 bg-green-50 dark:bg-green-900/20 border-2 border-green-500 dark:border-green-600 rounded-xl flex items-center space-x-3 text-green-700 dark:text-green-300 animate-pulse">
-          <CheckCircle className="w-5 h-5 flex-shrink-0" />
-          <p className="font-medium">{successMessage}</p>
+        <div className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg animate-pulse">
+          <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+          <span className="text-green-800 dark:text-green-200">{successMessage}</span>
         </div>
       )}
 
       {/* Error Message */}
       {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-500 dark:border-red-600 rounded-xl flex items-center space-x-3 text-red-700 dark:text-red-300">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <p className="font-medium">{error}</p>
+        <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+          <span className="text-red-800 dark:text-red-200">{error}</span>
         </div>
       )}
 
@@ -263,7 +254,7 @@ export function ProfilePage() {
                 >
                   {isSaving ? (
                     <>
-                      <Clock className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       {t('profile.updating')}
                     </>
                   ) : (

@@ -24,6 +24,10 @@ export function RecentAttempts() {
 
       try {
         const data = await dataService.getTestAttempts(user!.id);
+        // Filter only practice test attempts (skill='all'), not skill practice
+        // TODO: Backend needs to return 'skill' field in test attempts
+        // For now, show all attempts
+        
         // Sort by started_at descending and take latest 5
         const sortedData = data.sort((a, b) => 
           new Date(b.started_at).getTime() - new Date(a.started_at).getTime()

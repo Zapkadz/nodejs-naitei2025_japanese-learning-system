@@ -18,7 +18,7 @@ import type { IUser, ITest } from '../types';
 type TabType = 'users' | 'tests' | 'statistics';
 
 export function AdminPage() {
-  const { user, token } = useAuthStore();
+  const { token } = useAuthStore();
   const [activeTab, setActiveTab] = useState<TabType>('statistics');
   const [loading, setLoading] = useState(false);
 
@@ -85,7 +85,7 @@ export function AdminPage() {
   const fetchTests = async () => {
     setLoading(true);
     try {
-      const data = await dataService.getTests();
+      const data = await dataService.getTests({ skill: 'all' });
       setTests(data);
     } catch (error) {
       console.error('Failed to fetch tests:', error);
@@ -98,7 +98,7 @@ export function AdminPage() {
     setLoading(true);
     try {
       // Step 1: Get all tests first
-      const allTests = await dataService.getTests();
+      const allTests = await dataService.getTests({ skill: 'all' });
       console.log('[AdminPage] Fetched tests:', allTests.length);
       
       // Step 2: Fetch completed attempts for each test using correct API

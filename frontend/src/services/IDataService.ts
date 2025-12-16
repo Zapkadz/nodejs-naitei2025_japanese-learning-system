@@ -14,18 +14,17 @@ import type {
   IPasswordChange,
   ITestAttempt,
   ISectionAttempt,
-  ISubmission,
   IResult,
   IWeeklyActivity,
-  IActivityHeatmapDay,
   ITest,
   ITestDetail,
   TestFilter,
+  SkillType,
+  ISectionWithParts,
+  IAnswer,
 } from '../types';
 
 export interface IDataService {
-  
-
   // ============================================================================
   // Authentication
   // ============================================================================
@@ -197,10 +196,10 @@ export interface IDataService {
 
   /**
    * Get list of tests with optional filtering
-   * @param filter - Optional filter criteria (level, year, is_active)
+   * @param filter - Optional filter criteria (level, year, is_active, skill)
    * @returns Promise resolving to array of tests
    */
-  getTests(filter?: TestFilter): Promise<ITest[]>;
+  getTests(filter?: TestFilter & { skill?: SkillType }): Promise<ITest[]>;
 
   /**
    * Get detailed test information including all sections, parts, questions, and options

@@ -9,14 +9,15 @@ import type {
   IUserUpdate,
   ITestAttempt,
   ISectionAttempt,
-  ISubmission,
   IResult,
   IPasswordChange,
   IWeeklyActivity,
-  IActivityHeatmapDay,
   ITest,
   ITestDetail,
   TestFilter,
+  SkillType,
+  IAnswer,
+  ISectionWithParts,
 } from '../types';
 import type { IDataService } from './IDataService';
 
@@ -228,11 +229,8 @@ export class ApiDataService implements IDataService {
     
     // Filter by testId on frontend if provided
     if (testId) {
-      // Backend returns testId (camelCase), but also check test_id for compatibility
-      const filtered = attempts.filter(a => {
-        const attemptTestId = a.testId || a.test_id;
-        return attemptTestId === testId;
-      });
+      // Backend returns test_id (snake_case)
+      const filtered = attempts.filter(a => a.test_id === testId);
       return filtered;
     }
     return attempts;
@@ -287,6 +285,13 @@ export class ApiDataService implements IDataService {
     return response.data.result;
   }
 
+  async getAttemptResult(attemptId: number): Promise<IResult> {
+    const response = await this.api.get<{ result: IResult }>(
+      `/progress/section-attempt/${attemptId}/result`
+    );
+    return response.data.result;
+  }
+
     // ============================================================================
   // User Statistics & Activity
   // ============================================================================
@@ -328,12 +333,13 @@ export class ApiDataService implements IDataService {
   // Test Management
   // ============================================================================
 
-  async getTests(filter?: TestFilter): Promise<ITest[]> {
+  async getTests(filter?: TestFilter & { skill?: SkillType }): Promise<ITest[]> {
     const params = new URLSearchParams();
 
     if (filter?.level) params.append('level', filter.level);
     if (filter?.year) params.append('year', filter.year.toString());
     if (filter?.is_active !== undefined) params.append('is_active', filter.is_active.toString());
+    if (filter?.skill) params.append('skill', filter.skill);
 
     const response = await this.api.get<{ tests: ITest[] }>('/tests', { params });
     return response.data.tests;

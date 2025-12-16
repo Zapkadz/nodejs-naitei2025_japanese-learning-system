@@ -3,7 +3,6 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
   CheckCircle, 
@@ -11,7 +10,6 @@ import {
   TrendingUp, 
   Award,
   Calendar,
-  User,
   Settings,
   Edit2,
   Lock,
@@ -28,7 +26,6 @@ import { HTMLRenderer } from '../components/HTMLRenderer';
 import type { ITestAttempt } from '../types';
 
 export function HistoryPage() {
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);

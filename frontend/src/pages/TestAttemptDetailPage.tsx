@@ -23,7 +23,7 @@ export function TestAttemptDetailPage() {
   const [testDetail, setTestDetail] = useState<ITestDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const hasFetchedRef = useRef(false);
-  const prevTestAttemptIdRef = useRef<string | undefined>();
+  const prevTestAttemptIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     // Reset hasFetchedRef khi testAttemptId thay đổi
@@ -121,7 +121,7 @@ export function TestAttemptDetailPage() {
     <div className="space-y-6">
       {/* Back Button */}
       <button
-        onClick={() => navigate(`/tests/${testAttempt.test_id || testAttempt.testId}`)}
+        onClick={() => navigate(`/tests/${testAttempt.test_id}`)}
         className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
       >
         <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />

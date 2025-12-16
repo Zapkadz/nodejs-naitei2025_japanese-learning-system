@@ -15,6 +15,8 @@ export type AttemptStatus = 'NOT_STARTED' | 'PAUSED' | 'COMPLETED' | 'IN_PROGRES
 
 export type SectionType = 'VOCAB' | 'GRAMMAR_READING' | 'LISTENING';
 
+export type SkillType = 'all' | 'goi' | 'dokkai' | 'bunpou' | 'choukai';
+
 // ============================================================================
 // Core Entity Interfaces
 // ============================================================================
@@ -26,6 +28,7 @@ export interface ITest {
   year: number;
   month: number;
   is_active: boolean;
+  skill: SkillType; // 'all' for full tests, or specific skill
   is_attempted?: boolean; // Has user started this test?
   is_completed?: boolean; // Has user completed this test (at least one completed attempt)?
   created_at?: string;
@@ -235,10 +238,6 @@ export interface IRegisterResponse {
   user: IUser;
 }
 
-export interface IRegisterResponse {
-  user: IUser;
-}
-
 // ============================================================================
 // User Profile Update
 // ============================================================================
@@ -268,7 +267,9 @@ export interface ISectionProgress {
   answered: number;
   marked: number;
   total: number;
-}// ============================================================================
+}
+
+// ============================================================================
 // User Statistics & Activity
 // ============================================================================
 
@@ -284,43 +285,5 @@ export interface IActivityHeatmapDay {
   level: 0 | 1 | 2 | 3 | 4; // intensity level for color coding
 }
 
-// ============================================================================
-// Request/Response DTOs
-// ============================================================================
-
-export interface TestFilter {
-  level?: JLPTLevel;
-  year?: number;
-  is_active?: boolean;
-}
-
-export interface IAnswerSubmission {
-  question_id: number;
-  selected_option_id: number | null;
-  is_marked: boolean;
-}
-
-export interface ISubmission {
-  section_attempt_id: number;
-  answers: IAnswerSubmission[];
-  time_remaining?: number; // in seconds
-}
-
-export interface IQuestionResult {
-  question_id: number;
-  question_number: number;
-  selected_option_id: number | null;
-  correct_option_id: number;
-  is_correct: boolean;
-  is_marked: boolean;
-  explanation: string | null;
-}
-
-export interface IResult {
-  section_attempt_id: number;
-  score: number;
-  correct_count: number;
-  total_questions: number;
-  percentage: number;
-  questions: IQuestionResult[];
-}
+// Type alias for backward compatibility
+export type IAnswer = IAnswerSubmission;

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
   BookOpen, 
@@ -25,6 +25,7 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuthStore();
   const [isDark, setIsDark] = useState(() => {
     return localStorage.getItem('theme') === 'dark';
@@ -91,6 +92,32 @@ export function MainLayout({ children }: MainLayoutProps) {
 
             {/* Right Icons */}
             <div className="flex items-center space-x-2">
+              {/* Practice Tests */}
+              <button
+                onClick={() => navigate('/dashboard')}
+                className={`px-5 py-2.5 rounded-xl transition-all font-bold text-base ${
+                  location.pathname === '/dashboard'
+                    ? 'bg-white text-emerald-600 dark:bg-emerald-400 dark:text-slate-900 shadow-lg scale-105'
+                    : 'text-white dark:text-emerald-400 hover:bg-white/20 dark:hover:bg-emerald-900/20 hover:scale-105'
+                }`}
+                title={t('nav.practiceTests', 'Luyện đề')}
+              >
+                <span>{t('nav.practiceTests', 'Luyện đề')}</span>
+              </button>
+
+              {/* Practice Skills */}
+              <button
+                onClick={() => navigate('/skills')}
+                className={`px-5 py-2.5 rounded-xl transition-all font-bold text-base ${
+                  location.pathname.startsWith('/skills')
+                    ? 'bg-white text-emerald-600 dark:bg-emerald-400 dark:text-slate-900 shadow-lg scale-105'
+                    : 'text-white dark:text-emerald-400 hover:bg-white/20 dark:hover:bg-emerald-900/20 hover:scale-105'
+                }`}
+                title={t('nav.practiceSkills', 'Luyện kỹ năng')}
+              >
+                <span>{t('nav.practiceSkills', 'Luyện kỹ năng')}</span>
+              </button>
+
               {/* History */}
               <button
                 onClick={() => navigate('/history')}

@@ -17,6 +17,7 @@ interface StatisticsTabProps {
       total_score: number;
       is_passed: boolean;
       started_at: string;
+      completed_at?: string;
       user: {
         id: number;
         full_name: string;
@@ -116,7 +117,7 @@ export function StatisticsTab({ statistics, loading }: StatisticsTabProps) {
                             {attempt.user.full_name}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {new Date(attempt.completed_at).toLocaleDateString('vi-VN')}
+                            {new Date(attempt.completed_at || attempt.started_at).toLocaleDateString('vi-VN')}
                           </div>
                         </div>
                       </div>

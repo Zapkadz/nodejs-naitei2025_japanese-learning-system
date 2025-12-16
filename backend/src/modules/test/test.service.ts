@@ -26,7 +26,7 @@ export class TestService {
       queryBuilder.andWhere('test.year = :year', { year });
     }
 
-    if (skill && skill !== 'all') {
+    if (skill) {
       queryBuilder.andWhere('test.skill = :skill', { skill });
     }
 

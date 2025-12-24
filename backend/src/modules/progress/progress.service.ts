@@ -667,7 +667,8 @@ export class ProgressService {
           );
           testAttempt.is_completed = true;
           testAttempt.total_score = avgScore;
-          testAttempt.is_passed = avgScore >= 60;
+          // Passed: >= 52%, Failed but not eliminated: 33% <= score < 52%, Eliminated: < 33%
+          testAttempt.is_passed = avgScore >= 52;
           testAttempt.completed_at = new Date();
           await this.testAttemptRepo.save(testAttempt);
         }

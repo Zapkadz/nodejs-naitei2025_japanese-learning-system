@@ -5,6 +5,7 @@ import {
   UseGuards,
   Request,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
@@ -47,6 +48,38 @@ export class AnalyticsController {
 
     await this.analyticsService.resetLoginHeatmap();
     return { message: 'Login heatmap has been reset successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('funnel/tests')
+  async getTestFunnel(
+    @Request() req,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('level') level?: string,
+    @Query('limit') limit?: string,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const userId = req.user.userId as number;
+
+    // Kiểm tra quyền admin
+    const isAdmin = await this.userService.is_admin(userId);
+    if (!isAdmin) {
+      throw new BadRequestException('Only admin can access this resource');
+    }
+
+    // Parse limit an toàn
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
+    if (limitNum !== undefined && (isNaN(limitNum) || limitNum < 1)) {
+      throw new BadRequestException('Invalid limit parameter');
+    }
+
+    return this.analyticsService.getTestFunnel({
+      from,
+      to,
+      level,
+      limit: limitNum,
+    });
   }
 }
 

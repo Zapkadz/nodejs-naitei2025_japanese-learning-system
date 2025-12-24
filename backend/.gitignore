@@ -84,3 +84,8 @@ test-heatmap.sh
 FIX_401_HEATMAP.md
 FIX_ADMIN_ROLE.md
 TEST_HEATMAP_GUIDE.md
+
+Funnel_API_Postman_Collection.json
+POSTMAN_IMPORT_GUIDE.md
+Postman_Environment.json
+test-funnel-api.http

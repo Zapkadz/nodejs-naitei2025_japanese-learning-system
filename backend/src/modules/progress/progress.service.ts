@@ -293,6 +293,7 @@ export class ProgressService {
         test_attempt: { id: testAttempt.id },
         section: { id: section.id },
       },
+      relations: ['test_attempt', 'section'],
     });
 
     if (existingSectionAttempt) {

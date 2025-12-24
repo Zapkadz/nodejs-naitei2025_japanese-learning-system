@@ -1,0 +1,310 @@
+{
+	"info": {
+		"name": "JLPT Heatmap Analytics API",
+		"description": "Collection để test Heatmap Analytics - Phân tích hành vi đăng nhập",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. Register Admin (Tạo tài khoản admin)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 201 || pm.response.code === 200) {",
+							"    const jsonData = pm.response.json();",
+							"    if (jsonData.user && jsonData.user.email) {",
+							"        pm.environment.set(\"admin_email\", jsonData.user.email);",
+							"        console.log(\"Admin email saved: \" + jsonData.user.email);",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{admin_email}}\",\n    \"password\": \"{{admin_password}}\",\n    \"confirm_password\": \"{{admin_password}}\",\n    \"full_name\": \"Admin User\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/user/",
+					"host": ["{{baseUrl}}"],
+					"path": ["user", ""]
+				},
+				"description": "Đăng ký tài khoản admin mới.\n\n**Lưu ý quan trọng**: \n- Chạy request này TRƯỚC khi login\n- Sau khi đăng ký, bạn cần set `role = 'admin'` trong database:\n  ```sql\n  UPDATE users SET role = 'admin' WHERE email = '{{admin_email}}';\n  ```\n- Hoặc nếu đã có tài khoản admin thì có thể bỏ qua request này và login luôn.\n- Nếu tài khoản đã tồn tại sẽ báo lỗi \"Email already exists\", nhưng không sao, bạn có thể login luôn."
+			},
+			"response": []
+		},
+		{
+			"name": "0.1. Register User (Tạo tài khoản user thường)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 201 || pm.response.code === 200) {",
+							"    const jsonData = pm.response.json();",
+							"    if (jsonData.user && jsonData.user.email) {",
+							"        pm.environment.set(\"user_email\", jsonData.user.email);",
+							"        console.log(\"User email saved: \" + jsonData.user.email);",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{user_email}}\",\n    \"password\": \"{{user_password}}\",\n    \"confirm_password\": \"{{user_password}}\",\n    \"full_name\": \"Test User\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/user/",
+					"host": ["{{baseUrl}}"],
+					"path": ["user", ""]
+				},
+				"description": "Đăng ký tài khoản user thường để test increment heatmap. Nếu tài khoản đã tồn tại sẽ báo lỗi, nhưng không sao, bạn có thể bỏ qua và login luôn.\n\n**Lưu ý**: Chạy request này TRƯỚC khi test login với user thường."
+			},
+			"response": []
+		},
+		{
+			"name": "1. Login (Admin)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    const jsonData = pm.response.json();",
+							"    if (jsonData.user && jsonData.user.token) {",
+							"        // Lưu vào cả environment và collection để đảm bảo",
+							"        pm.environment.set(\"token\", jsonData.user.token);",
+							"        pm.collectionVariables.set(\"token\", jsonData.user.token);",
+							"        pm.environment.set(\"userId\", jsonData.user.email);",
+							"        console.log(\"✅ Token saved to environment and collection\");",
+							"        console.log(\"Token: \" + jsonData.user.token.substring(0, 20) + \"...\");",
+							"    } else {",
+							"        console.log(\"❌ No token in response\");",
+							"        console.log(\"Response: \" + JSON.stringify(jsonData));",
+							"    }",
+							"} else {",
+							"    console.log(\"❌ Login failed with status: \" + pm.response.code);",
+							"    console.log(\"Response: \" + pm.response.text());",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{admin_email}}\",\n    \"password\": \"{{admin_password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/login",
+					"host": ["{{baseUrl}}"],
+					"path": ["auth", "login"]
+				},
+				"description": "Đăng nhập với tài khoản admin. Token sẽ tự động được lưu vào environment variable.\n\n**Lưu ý**:\n- Phải chạy request \"0. Register Admin\" trước để tạo tài khoản\n- Sau khi đăng ký, cần set role = 'admin' trong database\n- Nếu đã có tài khoản admin thì có thể bỏ qua bước đăng ký\n- Kiểm tra Console (View → Show Postman Console) để xem token có được lưu không"
+			},
+			"response": []
+		},
+		{
+			"name": "2. Login (User thường - để test increment)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{user_email}}\",\n    \"password\": \"{{user_password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/login",
+					"host": ["{{baseUrl}}"],
+					"path": ["auth", "login"]
+				},
+				"description": "Đăng nhập với user thường. Mỗi lần gọi request này sẽ tự động increment counter trong heatmap (kể cả login fail).\n\n**Lưu ý**: Chạy request này nhiều lần để test heatmap tăng.\n\n**Quan trọng**: Phải chạy request \"0.1. Register User\" trước để tạo tài khoản."
+			},
+			"response": []
+		},
+		{
+			"name": "3. Get Login Heatmap",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/admin/analytics/heatmap/login",
+					"host": ["{{baseUrl}}"],
+					"path": ["admin", "analytics", "heatmap", "login"]
+				},
+				"description": "Lấy ma trận heatmap login (7 hàng × 12 cột).\n\n**Response format**:\n```json\n{\n  \"columns\": [\"00-02\", \"02-04\", ...],\n  \"rows\": [\n    {\n      \"weekdayId\": 1,\n      \"weekdayName\": \"Thứ 2\",\n      \"values\": [0, 0, 0, ...] // 12 giá trị\n    },\n    ...\n  ]\n}\n```\n\n**Yêu cầu**: Phải đăng nhập với tài khoản admin."
+			},
+			"response": []
+		},
+		{
+			"name": "4. Reset Login Heatmap",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/admin/analytics/heatmap/login/reset",
+					"host": ["{{baseUrl}}"],
+					"path": ["admin", "analytics", "heatmap", "login", "reset"]
+				},
+				"description": "Reset tất cả giá trị heatmap về 0.\n\n**Yêu cầu**: Phải đăng nhập với tài khoản admin."
+			},
+			"response": []
+		},
+		{
+			"name": "5. Test Flow - Simulate Multiple Logins",
+			"item": [
+				{
+					"name": "Login 1",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{user_email}}\",\n    \"password\": \"{{user_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login 2",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{user_email}}\",\n    \"password\": \"{{user_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login 3",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{user_email}}\",\n    \"password\": \"{{user_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login 4",
+					"request": "{{baseUrl}}/auth/login"
+				},
+				{
+					"name": "Login 5",
+					"request": "{{baseUrl}}/auth/login"
+				}
+			],
+			"description": "Folder chứa nhiều request login để test increment heatmap. Chạy folder này sẽ tự động chạy tất cả requests bên trong."
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+

@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { ProgressService } from './progress.service';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
@@ -101,6 +102,7 @@ export class ProgressController {
   @UseGuards(JwtAuthGuard)
   @Post('section-attempt/start/:sectionId')
   async startSectionAttempt(
+    @Query('retry') retry: boolean,
     @Param('sectionId', ParseIntPipe) sectionId: number,
     @Request() req,
   ): Promise<{ sectionAttempt: SectionAttemptResponseDto }> {
@@ -111,6 +113,7 @@ export class ProgressController {
       await this.progressService.startSectionAttemptBySectionId(
         userId,
         sectionId,
+        retry,
       );
 
     const response =

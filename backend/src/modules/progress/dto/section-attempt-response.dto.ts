@@ -5,7 +5,7 @@ export class SectionAttemptResponseDto {
   id: number;
   test_attempt_id: number;
   section_id: number;
-  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED';
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED' | 'ABANDONED';
   score: number | null;
   correct_count: number | null;
   question_count: number;

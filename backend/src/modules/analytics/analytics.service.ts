@@ -7,6 +7,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { UserAnswer } from 'src/entities/user_answers.entity';
 import { UserService } from '../user/user.service';
 import { TestStatisticsResponseDto } from './dto/test-statistics-response.dto';
+import { Section } from 'src/entities/sections.entity';
 
 interface RawTestStatistic {
   section_id: number;
@@ -25,6 +26,7 @@ interface QuestionStat {
 
 interface SectionStat {
   sectionName: string;
+  sectionTotalQuestion: number;
   questions: QuestionStat[];
 }
 
@@ -40,6 +42,8 @@ export class AnalyticsService {
 
     @InjectRepository(UserAnswer)
     private readonly userAnswerRepo: Repository<UserAnswer>,
+    @InjectRepository(Section)
+    private readonly sectionRepo: Repository<Section>,
   ) {}
 
   async getLoginHeatmap() {
@@ -160,6 +164,21 @@ export class AnalyticsService {
       throw new BadRequestException('Only admin can access this resource');
     }
 
+    const sections = await this.sectionRepo.find({
+      where: { test: { id: testId } },
+      relations: ['parts', 'parts.questions'],
+    });
+
+    const sectionQuestionCountMap = new Map<number, number>();
+
+    for (const section of sections) {
+      const questionCount = section.parts.reduce(
+        (sum, part) => sum + (part.questions?.length || 0),
+        0,
+      );
+      sectionQuestionCountMap.set(section.id, questionCount);
+    }
+
     const rawStats = await this.userAnswerRepo
       .createQueryBuilder('ua')
       .innerJoin('ua.question', 'q')
@@ -195,6 +214,8 @@ export class AnalyticsService {
       if (!sectionMap.has(row.section_id)) {
         sectionMap.set(row.section_id, {
           sectionName: row.section_name,
+          sectionTotalQuestion:
+            sectionQuestionCountMap.get(row.section_id) ?? 0,
           questions: [],
         });
       }

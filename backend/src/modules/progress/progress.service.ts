@@ -247,6 +247,7 @@ export class ProgressService {
   async startSectionAttemptBySectionId(
     userId: number,
     sectionId: number,
+    isRetry: boolean = false,
   ): Promise<SectionAttempt> {
     //Load section + test
     const section = await this.sectionRepo.findOne({
@@ -287,28 +288,43 @@ export class ProgressService {
       await this.testAttemptRepo.save(testAttempt);
     }
 
-    // Check section attempt đã tồn tại chưa
-    const existingSectionAttempt = await this.sectionAttemptRepo.findOne({
+    const activeSectionAttempt = await this.sectionAttemptRepo.findOne({
+      where: {
+        test_attempt: { id: testAttempt.id },
+        section: { id: section.id },
+        status: 'IN_PROGRESS',
+      },
+      order: { attempt_number: 'DESC' },
+      relations: ['test_attempt', 'section'],
+    });
+
+    if (activeSectionAttempt && !isRetry) {
+      return activeSectionAttempt;
+    }
+
+    if (activeSectionAttempt && isRetry) {
+      activeSectionAttempt.status = 'ABANDONED';
+      await this.sectionAttemptRepo.save(activeSectionAttempt);
+    }
+
+    const lastAttempt = await this.sectionAttemptRepo.findOne({
       where: {
         test_attempt: { id: testAttempt.id },
         section: { id: section.id },
       },
+      order: { attempt_number: 'DESC' },
     });
+    const nextAttemptNumber = lastAttempt ? lastAttempt.attempt_number + 1 : 1;
 
-    if (existingSectionAttempt) {
-      return existingSectionAttempt;
-    }
-
-    // Tính số câu hỏi
     const questionCount = section.parts.reduce(
       (sum, part) => sum + (part.questions?.length || 0),
       0,
     );
 
-    // Tạo section attempt
     const sectionAttempt = this.sectionAttemptRepo.create({
       test_attempt: testAttempt,
       section,
+      attempt_number: nextAttemptNumber,
       status: 'IN_PROGRESS',
       question_count: questionCount,
       time_remaining: section.time_limit * 60,

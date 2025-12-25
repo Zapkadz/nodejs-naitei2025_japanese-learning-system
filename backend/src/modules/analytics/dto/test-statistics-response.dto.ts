@@ -7,6 +7,7 @@ export class QuestionStatDto {
 
 export class SectionStatDto {
   sectionName: string;
+  sectionTotalQuestion: number;
   questions: QuestionStatDto[];
 }
 

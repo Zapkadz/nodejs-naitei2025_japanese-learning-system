@@ -1,7 +1,7 @@
 export class SectionAttemptResponseDto {
   id: number;
   sectionId: number;
-  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED';
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED' | 'ABANDONED';
   score?: number | null;
   correct_count: number;
   time_remaining: number;

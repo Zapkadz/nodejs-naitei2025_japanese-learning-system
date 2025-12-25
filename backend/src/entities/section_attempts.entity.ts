@@ -16,7 +16,7 @@ export class SectionAttempt extends BaseEntity {
   section: Section;
 
   @Column({ length: 20, default: 'NOT_STARTED' })
-  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED';
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED' | 'ABANDONED';
 
   @Column({ type: 'int', nullable: true })
   score?: number | null;
@@ -29,6 +29,9 @@ export class SectionAttempt extends BaseEntity {
 
   @Column({ type: 'int', nullable: true })
   time_remaining?: number | null;
+
+  @Column({ type: 'int', default: 1 })
+  attempt_number: number;
 
   @OneToMany(() => UserAnswer, (a) => a.section_attempt)
   answers: UserAnswer[];

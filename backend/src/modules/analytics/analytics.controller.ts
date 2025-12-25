@@ -90,4 +90,33 @@ export class AnalyticsController {
     const userId = req.user.userId as number;
     return this.analyticsService.getTestStatistics(Number(testId), userId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('content-quality/weak-skill-pie')
+  async getWeakSkillPie(
+    @Request() req,
+    @Query('levels') levels?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const userId = req.user.userId as number;
+
+    // Kiểm tra quyền admin
+    const isAdmin = await this.userService.is_admin(userId);
+    if (!isAdmin) {
+      throw new BadRequestException('Only admin can access this resource');
+    }
+
+    // Parse levels từ query string (comma-separated)
+    const levelsArray = levels
+      ? levels.split(',').map((l) => l.trim()).filter((l) => l.length > 0)
+      : undefined;
+
+    return this.analyticsService.getWeakSkillPie({
+      levels: levelsArray,
+      from,
+      to,
+    });
+  }
 }

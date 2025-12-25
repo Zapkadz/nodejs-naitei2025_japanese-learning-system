@@ -87,6 +87,7 @@ export class AnalyticsService {
 
     // QueryBuilder: FROM tests t LEFT JOIN test_attempts a
     // Chỉ lấy các test có attempts trong khoảng thời gian
+    // Chỉ lấy các đề JLPT (skill = 'all'), không lấy Goi, Bunpou, etc.
     // Note: TypeORM sẽ tự động map testId -> test_id trong database
     const queryBuilder = this.testRepo
       .createQueryBuilder('t')
@@ -96,6 +97,7 @@ export class AnalyticsService {
         'a.testId = t.id AND a.started_at >= :fromDate AND a.started_at <= :toDate',
         { fromDate, toDate },
       )
+      .where("t.skill = 'all'") // Chỉ lấy các đề JLPT, không lấy Goi, Bunpou, etc.
       .select('t.id', 'testId')
       .addSelect('t.title', 'title')
       .addSelect('COUNT(DISTINCT a.id)', 'started')
